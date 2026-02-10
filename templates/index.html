@@ -300,6 +300,38 @@
             text-align: center;
         }
 
+        /* --- Email capture --- */
+        .email-capture {
+            padding: 24px 28px; margin-bottom: 24px;
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--radius); text-align: center;
+            animation: fadeUp 0.4s ease-out 0.6s both;
+        }
+        .email-capture p { font-size: 14px; color: var(--text-muted); margin-bottom: 12px; }
+        .email-capture strong { color: var(--text); }
+        .email-row {
+            display: flex; gap: 8px; max-width: 400px; margin: 0 auto;
+        }
+        .email-row input {
+            flex: 1; padding: 10px 14px; font-size: 14px;
+            font-family: 'Inter', sans-serif; color: var(--text);
+            background: var(--bg); border: 1px solid var(--border);
+            border-radius: 8px; outline: none; transition: border-color 0.2s;
+        }
+        .email-row input:focus { border-color: var(--fire); }
+        .email-row input::placeholder { color: var(--text-muted); }
+        .email-row button {
+            padding: 10px 20px; font-size: 13px; font-weight: 600;
+            font-family: 'Inter', sans-serif; white-space: nowrap;
+            background: var(--fire); color: #fff; border: none;
+            border-radius: 8px; cursor: pointer; transition: all 0.2s;
+        }
+        .email-row button:hover { background: var(--fire-glow); }
+        .email-row button:disabled { opacity: 0.6; cursor: not-allowed; }
+        .email-capture .sent {
+            color: var(--green); font-size: 14px; font-weight: 600;
+        }
+
         .roast-list { list-style: none; margin-bottom: 32px; }
         .roast-item {
             padding: 16px 20px; margin-bottom: 8px;
@@ -502,6 +534,14 @@
     </div>
 
     <ul class="roast-list" id="roastList"></ul>
+
+    <div class="email-capture" id="emailCapture" style="display:none">
+        <p><strong>Want your score + tips emailed?</strong> Get a copy of your results with improvement tips.</p>
+        <div class="email-row" id="emailRow">
+            <input type="email" id="emailInput" placeholder="your@email.com">
+            <button onclick="captureEmail()">Send Me Tips</button>
+        </div>
+    </div>
 
     <div class="upsell" id="upsell">
         <h2>Want the fix, not just the roast?</h2>
@@ -764,10 +804,13 @@
             list.appendChild(li);
         });
 
-        // Show share buttons
+        // Show share buttons + email capture
         currentScore = score;
+        currentOneLiner = data.one_liner || '';
+        currentRoasts = data.roasts || [];
         document.getElementById('shareBar').style.display = 'flex';
         document.getElementById('shareChallenge').style.display = 'block';
+        document.getElementById('emailCapture').style.display = 'block';
 
         // Scroll to results
         setTimeout(() => {
@@ -776,6 +819,29 @@
     }
 
     let currentScore = 0;
+    let currentOneLiner = '';
+    let currentRoasts = [];
+
+    async function captureEmail() {
+        const input = document.getElementById('emailInput');
+        const email = input.value.trim();
+        if (!email || !email.includes('@')) { showToast('Enter a valid email.'); return; }
+
+        const btn = input.nextElementSibling;
+        btn.disabled = true; btn.textContent = 'Sending...';
+        try {
+            const res = await fetch('/api/capture-email', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, score: currentScore, one_liner: currentOneLiner, roasts: currentRoasts })
+            });
+            if (res.ok) {
+                document.getElementById('emailRow').innerHTML = '<span class="sent">&#10003; Sent! Check your inbox.</span>';
+            } else {
+                showToast('Could not send. Try again.'); btn.disabled = false; btn.textContent = 'Send Me Tips';
+            }
+        } catch(e) { showToast('Network error.'); btn.disabled = false; btn.textContent = 'Send Me Tips'; }
+    }
 
     function getShareText() {
         return `My resume just scored ${currentScore}/100 on CVRoast. Can you beat it? \ud83d\udd25`;

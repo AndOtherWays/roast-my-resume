@@ -384,6 +384,164 @@ def seo_page():
     return redirect('/')
 
 
+COMPARISON_PAGES = {
+    'cvroast-vs-jobscan': {
+        'title': 'CVRoast vs Jobscan — Which Resume Checker Is Better? (2026)',
+        'meta_desc': 'Compare CVRoast and Jobscan side-by-side. Free ATS scoring, pricing, features, and honest pros/cons. Find the best resume checker for you.',
+        'competitor': 'Jobscan',
+        'competitor_price': '$49.95/month',
+        'our_price': '$4.99 one-time',
+        'competitor_desc': 'Jobscan is a keyword-matching tool that compares your resume against a specific job description. It highlights missing keywords and gives you a match rate.',
+        'our_advantage': 'CVRoast gives you a universal ATS score that works across all applications, plus rewrites your entire CV for a one-time fee less than one month of Jobscan.',
+        'features': [
+            ('ATS Score', True, True),
+            ('Free tier', True, True),
+            ('Full CV rewrite', True, False),
+            ('Keyword matching', False, True),
+            ('No subscription needed', True, False),
+            ('Brutally honest feedback', True, False),
+            ('PDF/DOCX upload', True, True),
+            ('Multiple CV formats', True, False),
+        ],
+    },
+    'cvroast-vs-resume-io': {
+        'title': 'CVRoast vs Resume.io — Resume Builder Comparison (2026)',
+        'meta_desc': 'CVRoast vs Resume.io compared. One roasts and rewrites your CV, the other is a template builder. See which gives you better results for less money.',
+        'competitor': 'Resume.io',
+        'competitor_price': '$24.95/month',
+        'our_price': '$4.99 one-time',
+        'competitor_desc': 'Resume.io is a drag-and-drop resume builder with pre-made templates. You fill in your own content and choose a design.',
+        'our_advantage': 'CVRoast doesn\'t just format — it rewrites your content with ATS-optimized language, achievement metrics, and industry keywords. You get a better resume, not just a prettier one.',
+        'features': [
+            ('AI content rewriting', True, False),
+            ('ATS score analysis', True, False),
+            ('Free feedback tier', True, False),
+            ('Template builder', False, True),
+            ('No subscription', True, False),
+            ('Brutally honest feedback', True, False),
+            ('PDF export', True, True),
+            ('Achievement metrics added', True, False),
+        ],
+    },
+    'cvroast-vs-topresume': {
+        'title': 'CVRoast vs TopResume — AI vs Human Resume Review (2026)',
+        'meta_desc': 'Compare CVRoast ($4.99 AI rewrite) vs TopResume ($149+ human writer). Which gives you a better resume for the money?',
+        'competitor': 'TopResume',
+        'competitor_price': '$149-$349',
+        'our_price': '$4.99 one-time',
+        'competitor_desc': 'TopResume connects you with human resume writers who rewrite your CV over 1-2 weeks. Their free review is a generic PDF with no real feedback.',
+        'our_advantage': 'CVRoast delivers a complete professional rewrite in 60 seconds for 3% of the price. The AI applies the same techniques human writers use: ATS keywords, achievement metrics, and industry-standard formatting.',
+        'features': [
+            ('Full CV rewrite', True, True),
+            ('Instant delivery', True, False),
+            ('Under $5', True, False),
+            ('ATS optimization', True, True),
+            ('Human writer', False, True),
+            ('Free honest feedback', True, False),
+            ('Multiple format options', True, False),
+            ('60-second turnaround', True, False),
+        ],
+    },
+}
+
+
+@app.route('/cvroast-vs-jobscan')
+@app.route('/cvroast-vs-resume-io')
+@app.route('/cvroast-vs-topresume')
+def comparison_page():
+    slug = request.path.strip('/')
+    page = COMPARISON_PAGES.get(slug)
+    if page:
+        return render_template('comparison.html', page=page)
+    return redirect('/')
+
+
+# --- Email capture / mailing list ---
+email_list = []  # In-memory for now; will persist across restarts if you add a DB later
+
+
+@app.route('/api/capture-email', methods=['POST'])
+def capture_email():
+    data = request.get_json(silent=True) or {}
+    email = (data.get('email') or '').strip().lower()
+    if not email or '@' not in email:
+        return jsonify({'error': 'Invalid email'}), 400
+
+    score = data.get('score', 0)
+    one_liner = data.get('one_liner', '')
+    roasts = data.get('roasts', [])
+
+    # Store email
+    email_list.append({
+        'email': email,
+        'score': score,
+        'timestamp': datetime.utcnow().isoformat(),
+    })
+
+    # Send roast results + tips email
+    if MAILERSEND_API_KEY:
+        roast_html = ''.join(
+            f'<tr><td style="padding:8px 12px;color:#ff6b2c;font-weight:700;font-size:18px;vertical-align:top;width:30px;">{i+1}</td>'
+            f'<td style="padding:8px 12px;font-size:14px;color:#333;line-height:1.6;">{r}</td></tr>'
+            for i, r in enumerate(roasts)
+        )
+        color = '#ef4444' if score < 45 else ('#eab308' if score < 70 else '#22c55e')
+
+        html = f"""
+        <div style="max-width:580px;margin:0 auto;font-family:Arial,sans-serif;">
+            <div style="text-align:center;padding:28px;background:#0a0a0b;border-radius:12px 12px 0 0;">
+                <span style="font-size:22px;font-weight:800;color:#ff6b2c;">CVRoast</span>
+                <h1 style="font-size:22px;font-weight:700;color:#fff;margin:12px 0 4px;">Your Resume Roast Results</h1>
+            </div>
+            <div style="background:#fff;padding:32px;border:1px solid #e0e0e0;">
+                <div style="text-align:center;margin-bottom:24px;">
+                    <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:{color}15;border:2px solid {color}30;">
+                        <span style="font-size:48px;font-weight:900;color:{color};">{score}</span>
+                        <span style="font-size:16px;color:#666;">/100</span>
+                    </div>
+                </div>
+                <p style="text-align:center;font-size:16px;font-style:italic;color:#ff6b2c;margin-bottom:24px;">"{one_liner}"</p>
+                <table style="width:100%;border-collapse:collapse;">{roast_html}</table>
+                <div style="margin-top:28px;padding:20px;background:#f8f8f8;border-radius:8px;">
+                    <h3 style="font-size:14px;font-weight:700;color:#1a365d;margin-bottom:12px;">Quick Tips to Improve Your Score:</h3>
+                    <ul style="padding-left:20px;margin:0;font-size:13px;color:#555;line-height:1.8;">
+                        <li>Replace every "responsible for" with an action verb + metric</li>
+                        <li>Add numbers to every bullet point (even estimates help)</li>
+                        <li>Match keywords from job descriptions you're targeting</li>
+                        <li>Keep it to 1-2 pages with consistent formatting</li>
+                        <li>Remove graphics/tables that break ATS parsers</li>
+                    </ul>
+                </div>
+            </div>
+            <div style="text-align:center;padding:24px;background:#f8f8f8;border-radius:0 0 12px 12px;border:1px solid #e0e0e0;border-top:none;">
+                <p style="color:#666;font-size:14px;margin-bottom:12px;">Want your CV professionally rewritten?</p>
+                <a href="https://cvroast.com/#get-started" style="display:inline-block;padding:12px 28px;background:#ff6b2c;color:#fff;text-decoration:none;border-radius:8px;font-weight:700;font-size:14px;">Get My CV Rewritten</a>
+                <p style="color:#999;font-size:11px;margin-top:16px;">&copy; 2026 CVRoast</p>
+            </div>
+        </div>
+        """
+        try:
+            http_requests.post(
+                'https://api.mailersend.com/v1/email',
+                headers={
+                    'Authorization': f'Bearer {MAILERSEND_API_KEY}',
+                    'Content-Type': 'application/json',
+                },
+                json={
+                    'from': {'email': FROM_EMAIL, 'name': 'CVRoast'},
+                    'to': [{'email': email}],
+                    'subject': f'Your Resume Score: {score}/100 — CVRoast',
+                    'html': html,
+                    'text': f'Your resume scored {score}/100.\n\n"{one_liner}"\n\n' + '\n'.join(f'{i+1}. {r}' for i, r in enumerate(roasts)),
+                },
+                timeout=10,
+            )
+        except Exception:
+            pass
+
+    return jsonify({'ok': True})
+
+
 @app.route('/score/<int:score>')
 def score_page(score):
     score = max(0, min(100, score))
