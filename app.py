@@ -482,12 +482,92 @@ COMPARISON_PAGES = {
             ('60-second turnaround', True, False),
         ],
     },
+    'cvroast-vs-zety': {
+        'title': 'CVRoast vs Zety — Resume Builder vs AI Rewriter (2026)',
+        'meta_desc': 'CVRoast vs Zety compared. One rewrites your resume with AI, the other is a template builder. See pricing, features, and which is better for you.',
+        'competitor': 'Zety',
+        'competitor_price': '$23.99/month',
+        'our_price': '$4.99 one-time',
+        'competitor_desc': 'Zety is a resume builder with pre-designed templates and auto-fill suggestions. You pick a template, enter your info, and download a PDF. It does not analyse or score your existing resume.',
+        'our_advantage': 'CVRoast doesn\'t just format — it analyses your existing resume, scores it against ATS systems, and rewrites the content with achievement-focused language and industry keywords. Better results, fraction of the price.',
+        'features': [
+            ('AI content rewriting', True, False),
+            ('ATS score analysis', True, False),
+            ('Free feedback tier', True, False),
+            ('Template builder', False, True),
+            ('No subscription', True, False),
+            ('Achievement metrics added', True, False),
+            ('Cover letter builder', False, True),
+            ('Brutally honest feedback', True, False),
+        ],
+    },
+    'cvroast-vs-kickresume': {
+        'title': 'CVRoast vs Kickresume — AI Resume Checker Comparison (2026)',
+        'meta_desc': 'Compare CVRoast and Kickresume. Free ATS scoring vs template building. Which resume tool gives you better results?',
+        'competitor': 'Kickresume',
+        'competitor_price': '$19/month',
+        'our_price': '$4.99 one-time',
+        'competitor_desc': 'Kickresume is a resume builder with AI-assisted writing, templates, and a website builder. It helps you create resumes from scratch using their templates and content suggestions.',
+        'our_advantage': 'CVRoast takes your existing resume and makes it dramatically better. Instead of starting from a template, you get personalised analysis and a complete rewrite optimised for ATS systems — instantly, for a one-time fee.',
+        'features': [
+            ('AI content rewriting', True, True),
+            ('ATS score analysis', True, False),
+            ('Free tier with real feedback', True, False),
+            ('Template library', False, True),
+            ('No subscription', True, False),
+            ('Website builder', False, True),
+            ('Instant results', True, False),
+            ('Brutally honest score', True, False),
+        ],
+    },
+    'cvroast-vs-resumeworded': {
+        'title': 'CVRoast vs Resume Worded — Which AI Resume Tool Is Better? (2026)',
+        'meta_desc': 'CVRoast vs Resume Worded: pricing, features, and honest comparison. Both use AI — but one costs a fraction of the other.',
+        'competitor': 'Resume Worded',
+        'competitor_price': '$29/month',
+        'our_price': '$4.99 one-time',
+        'competitor_desc': 'Resume Worded is an AI resume scoring tool that analyses your resume against best practices and provides line-by-line suggestions. It also offers LinkedIn profile optimization.',
+        'our_advantage': 'Both tools use AI to score resumes, but CVRoast goes further — for a one-time fee less than one month of Resume Worded, you get a complete professional rewrite, not just suggestions you have to implement yourself.',
+        'features': [
+            ('AI resume scoring', True, True),
+            ('Full CV rewrite', True, False),
+            ('Line-by-line suggestions', False, True),
+            ('LinkedIn optimization', False, True),
+            ('No subscription', True, False),
+            ('Free tier', True, True),
+            ('Under $5 for full service', True, False),
+            ('Multiple output formats', True, False),
+        ],
+    },
+    'cvroast-vs-enhancv': {
+        'title': 'CVRoast vs Enhancv — Resume Analysis vs Resume Building (2026)',
+        'meta_desc': 'CVRoast vs Enhancv compared side-by-side. AI resume analysis and rewriting vs visual resume builder. Features, pricing, and verdict.',
+        'competitor': 'Enhancv',
+        'competitor_price': '$24.99/month',
+        'our_price': '$4.99 one-time',
+        'competitor_desc': 'Enhancv is a visual resume builder known for modern, design-forward templates. It offers drag-and-drop editing, custom sections, and basic content suggestions.',
+        'our_advantage': 'Enhancv makes pretty resumes — CVRoast makes effective ones. Our AI rewrites your content with ATS-optimized language, quantified achievements, and industry keywords. Design matters, but content gets interviews.',
+        'features': [
+            ('AI content rewriting', True, False),
+            ('ATS score analysis', True, False),
+            ('Free honest feedback', True, False),
+            ('Visual template builder', False, True),
+            ('No subscription', True, False),
+            ('Custom sections', False, True),
+            ('Achievement metrics added', True, False),
+            ('60-second delivery', True, False),
+        ],
+    },
 }
 
 
 @app.route('/cvroast-vs-jobscan')
 @app.route('/cvroast-vs-resume-io')
 @app.route('/cvroast-vs-topresume')
+@app.route('/cvroast-vs-zety')
+@app.route('/cvroast-vs-kickresume')
+@app.route('/cvroast-vs-resumeworded')
+@app.route('/cvroast-vs-enhancv')
 def comparison_page():
     slug = request.path.strip('/')
     page = COMPARISON_PAGES.get(slug)
