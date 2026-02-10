@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Embed CVRoast on Your Website — Free Resume Checker Widget</title>
+    <meta name="description" content="Add a free resume checker widget to your website or blog. One line of code. Helps your readers check their ATS score instantly.">
+    <meta property="og:title" content="Embed CVRoast — Free Resume Checker Widget">
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+    <link rel="canonical" href="https://cvroast.com/embed">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg: #08080a; --surface: #111114; --surface-2: #19191e;
+            --border: #252530; --text: #ededf0; --text-muted: #7c7c8a;
+            --accent: #ff6b2c; --accent-soft: rgba(255,107,44,0.12);
+            --accent-glow: #ff8f56; --green: #22c55e; --radius: 14px;
+        }
+        body {
+            font-family: 'DM Sans', -apple-system, sans-serif;
+            background: var(--bg); color: var(--text);
+            line-height: 1.6; -webkit-font-smoothing: antialiased;
+        }
+        nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            padding: 14px 24px;
+            background: rgba(8,8,10,0.88); backdrop-filter: blur(24px);
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .logo {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700; font-size: 19px; text-decoration: none;
+            background: linear-gradient(135deg, var(--accent), var(--accent-glow));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .nav-cta {
+            padding: 9px 22px; border-radius: 8px; font-size: 14px; font-weight: 600;
+            background: var(--accent); color: #fff; border: none; cursor: pointer;
+            text-decoration: none; transition: all 0.2s;
+        }
+        .container { max-width: 720px; margin: 0 auto; padding: 120px 24px 60px; }
+
+        h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(28px, 5vw, 40px); font-weight: 700;
+            line-height: 1.15; margin-bottom: 16px;
+        }
+        h1 span {
+            background: linear-gradient(135deg, var(--accent), #ffb088);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .subtitle { font-size: 16px; color: var(--text-muted); line-height: 1.7; margin-bottom: 40px; max-width: 560px; }
+
+        .preview-label {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 13px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.08em; color: var(--accent); margin-bottom: 16px;
+        }
+        .preview-box {
+            padding: 32px; background: var(--surface);
+            border: 1px solid var(--border); border-radius: var(--radius);
+            text-align: center; margin-bottom: 32px;
+        }
+
+        .code-label {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 13px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 12px;
+        }
+        .code-block {
+            position: relative; padding: 20px;
+            background: var(--surface-2); border: 1px solid var(--border);
+            border-radius: 10px; margin-bottom: 32px;
+        }
+        .code-block code {
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 14px; color: var(--accent-glow);
+            word-break: break-all; line-height: 1.6;
+        }
+        .copy-btn {
+            position: absolute; top: 12px; right: 12px;
+            padding: 6px 14px; font-size: 12px; font-weight: 700;
+            background: var(--accent); color: #fff; border: none;
+            border-radius: 6px; cursor: pointer; transition: all 0.2s;
+        }
+        .copy-btn:hover { background: var(--accent-glow); }
+
+        .features {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+            margin: 40px 0;
+        }
+        .feature {
+            padding: 20px; background: var(--surface);
+            border: 1px solid var(--border); border-radius: var(--radius);
+        }
+        .feature h3 { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+        .feature p { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+
+        .section-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 22px; font-weight: 700; margin: 40px 0 16px;
+        }
+        .section-text { font-size: 15px; color: var(--text-muted); line-height: 1.7; margin-bottom: 16px; }
+
+        footer {
+            text-align: center; padding: 40px 24px; font-size: 13px;
+            color: var(--text-muted); border-top: 1px solid var(--border); margin-top: 60px;
+        }
+        footer a { color: var(--text-muted); text-decoration: none; font-size: 12px; }
+
+        @media (max-width: 640px) {
+            .container { padding: 100px 16px 40px; }
+            .features { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <a href="/" class="logo">CVRoast</a>
+    <a href="/#get-started" class="nav-cta">Try Free</a>
+</nav>
+
+<div class="container">
+    <h1>Embed CVRoast on <span>Your Website</span></h1>
+    <p class="subtitle">Add a free resume checker button to your blog, career site, or coaching page. One line of code — your readers get instant ATS scores.</p>
+
+    <div class="preview-label">Preview</div>
+    <div class="preview-box">
+        <script src="https://cvroast.com/embed.js"></script>
+    </div>
+
+    <div class="code-label">Copy this code</div>
+    <div class="code-block">
+        <code>&lt;script src="https://cvroast.com/embed.js"&gt;&lt;/script&gt;</code>
+        <button class="copy-btn" onclick="navigator.clipboard.writeText('<script src=&quot;https://cvroast.com/embed.js&quot;></script>');this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',2000)">Copy</button>
+    </div>
+
+    <div class="code-label">Or use a simple link</div>
+    <div class="code-block">
+        <code>&lt;a href="https://cvroast.com/?ref=yoursite"&gt;Check your resume score free&lt;/a&gt;</code>
+        <button class="copy-btn" onclick="navigator.clipboard.writeText('<a href=&quot;https://cvroast.com/?ref=yoursite&quot;>Check your resume score free</a>');this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',2000)">Copy</button>
+    </div>
+
+    <div class="features">
+        <div class="feature">
+            <h3>Free for everyone</h3>
+            <p>No API key, no account needed. Just paste the code and it works.</p>
+        </div>
+        <div class="feature">
+            <h3>Looks great anywhere</h3>
+            <p>Dark themed button that matches most sites. Minimal, clean, professional.</p>
+        </div>
+        <div class="feature">
+            <h3>Help your readers</h3>
+            <p>Give your audience a free tool. They check their resume, you provide value.</p>
+        </div>
+        <div class="feature">
+            <h3>Lightweight</h3>
+            <p>Under 1KB. No tracking, no cookies, no performance impact on your site.</p>
+        </div>
+    </div>
+
+    <div class="section-title">Who should embed this?</div>
+    <p class="section-text">Career coaches, job boards, university career services, HR blogs, LinkedIn content creators, recruitment agencies — anyone whose audience writes resumes. It's free, it helps your readers, and it takes 10 seconds to add.</p>
+</div>
+
+<footer>
+    <div style="margin-bottom:16px;display:flex;gap:16px;justify-content:center;flex-wrap:wrap">
+        <a href="/free-resume-checker">Free Resume Checker</a>
+        <a href="/ats-score-checker">ATS Score Checker</a>
+        <a href="/resume-review">Resume Review</a>
+        <a href="/cv-review">CV Review</a>
+        <a href="/resume-roast">Resume Roast</a>
+        <a href="/blog">Blog</a>
+    </div>
+    &copy; 2026 CVRoast. Brutally honest resume feedback.
+    <br><a href="/privacy">Privacy Policy</a>
+</footer>
+
+</body>
+</html>

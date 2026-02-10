@@ -582,6 +582,31 @@ def capture_email():
     return jsonify({'ok': True})
 
 
+# --- Programmatic SEO: role-specific resume checker pages ---
+ROLE_PAGES = {
+    'nurse': {'title': 'Resume Checker for Nurses', 'role': 'Nurse', 'keywords': 'Patient Care, Clinical Documentation, HIPAA, Electronic Health Records, Triage, Medication Administration, Care Coordination, BLS/ACLS, Nursing Assessment, Discharge Planning', 'salary': '$70-95K', 'ats_tip': 'Nursing resumes that mention specific certifications (BLS, ACLS, PALS) and quantify patient loads score 30% higher in ATS systems.', 'common_mistake': 'Listing "patient care" without specifying the type of unit (ICU, ER, Med-Surg), patient volume, or acuity level.'},
+    'software-engineer': {'title': 'Resume Checker for Software Engineers', 'role': 'Software Engineer', 'keywords': 'Python, JavaScript, AWS, CI/CD, Microservices, REST APIs, Agile, Git, System Design, Docker, Kubernetes, SQL, React, Node.js', 'salary': '$90-180K', 'ats_tip': 'Tech resumes with specific frameworks and tools in a dedicated "Technical Skills" section score 25% higher than those burying them in job descriptions.', 'common_mistake': 'Listing technologies without context — "Used Python" means nothing. "Built data pipeline in Python processing 2M records/day" gets interviews.'},
+    'teacher': {'title': 'Resume Checker for Teachers', 'role': 'Teacher', 'keywords': 'Curriculum Development, Differentiated Instruction, Classroom Management, Student Assessment, IEP, STEM, Safeguarding, Lesson Planning, Parent Communication, Behaviour Management', 'salary': '$45-75K', 'ats_tip': 'Education resumes that mention specific curricula, year groups, and standardised test improvements get 40% more callbacks.', 'common_mistake': 'Writing "taught Year 6 class" instead of "Delivered differentiated maths curriculum to 30 Year 6 pupils, achieving 85% at expected standard in SATs."'},
+    'marketing-manager': {'title': 'Resume Checker for Marketing Managers', 'role': 'Marketing Manager', 'keywords': 'Lead Generation, SEO, SEM, Content Strategy, Marketing Automation, CRM, Campaign Management, ROI, Google Analytics, Brand Strategy, A/B Testing, Social Media', 'salary': '$65-120K', 'ats_tip': 'Marketing resumes with specific metrics (CAC, ROAS, conversion rates) score dramatically higher than those with vague "increased brand awareness" claims.', 'common_mistake': 'Claiming "managed social media" without metrics. Recruiters want: "Grew LinkedIn following 300% to 15K, generating 50+ inbound leads/month."'},
+    'project-manager': {'title': 'Resume Checker for Project Managers', 'role': 'Project Manager', 'keywords': 'Agile, Scrum, Stakeholder Management, Risk Assessment, Budget Management, PRINCE2, PMP, Gantt, JIRA, Resource Allocation, Sprint Planning, Change Management', 'salary': '$70-130K', 'ats_tip': 'PM resumes that mention budget sizes, team sizes, and delivery timelines in every role score 35% higher in ATS screening.', 'common_mistake': 'Saying "managed projects" without scope. Specify: "Led 8 concurrent projects ($2.5M total budget) with 95% on-time delivery across 3 departments."'},
+    'data-analyst': {'title': 'Resume Checker for Data Analysts', 'role': 'Data Analyst', 'keywords': 'SQL, Python, Tableau, Power BI, Excel, Statistical Analysis, Data Visualisation, ETL, A/B Testing, Machine Learning, R, BigQuery, Data Pipeline', 'salary': '$60-110K', 'ats_tip': 'Data analyst resumes that list specific tools AND business impact ("reduced churn 15% through predictive modelling") outperform pure technical lists.', 'common_mistake': 'Listing "SQL" as a skill without demonstrating scale — "Wrote complex SQL queries across 50M+ row datasets" proves competency.'},
+    'accountant': {'title': 'Resume Checker for Accountants', 'role': 'Accountant', 'keywords': 'GAAP, IFRS, Financial Reporting, Reconciliation, Tax Compliance, Audit, Accounts Payable, Accounts Receivable, QuickBooks, Xero, Sage, Budgeting, Variance Analysis', 'salary': '$50-90K', 'ats_tip': 'Accounting resumes that specify the size of books managed (revenue, transaction volume) and compliance frameworks score significantly higher.', 'common_mistake': 'Writing "prepared financial statements" — every accountant does this. Instead: "Prepared monthly financial statements for £12M revenue business, reducing close time from 10 to 5 days."'},
+    'sales-representative': {'title': 'Resume Checker for Sales Reps', 'role': 'Sales Representative', 'keywords': 'Pipeline Management, CRM, Salesforce, Cold Calling, Lead Qualification, Quota Achievement, Revenue Growth, Negotiation, Account Management, Upselling, B2B, B2C', 'salary': '$45-120K+', 'ats_tip': 'Sales resumes must have numbers. Quota attainment percentage, deal sizes, and pipeline values are the first thing sales hiring managers scan for.', 'common_mistake': 'Not including quota attainment. "Exceeded quota" means nothing. "Achieved 135% of £500K annual quota, ranking #2 of 25 reps" gets interviews.'},
+    'graphic-designer': {'title': 'Resume Checker for Graphic Designers', 'role': 'Graphic Designer', 'keywords': 'Adobe Creative Suite, Figma, UI/UX, Brand Identity, Typography, Layout Design, Print Design, Digital Design, Wireframing, Responsive Design, Illustration', 'salary': '$45-85K', 'ats_tip': 'Design resumes still need to be ATS-parseable — fancy layouts with columns and graphics often break ATS systems. Include a clean text version.', 'common_mistake': 'Ironically, designers often have the worst ATS scores because their beautifully designed resumes can\'t be parsed. Use a clean format with a portfolio link.'},
+    'hr-manager': {'title': 'Resume Checker for HR Managers', 'role': 'HR Manager', 'keywords': 'Talent Acquisition, Employee Relations, Performance Management, HRIS, Onboarding, Compliance, Diversity & Inclusion, Compensation & Benefits, Workforce Planning, Employment Law, CIPD', 'salary': '$60-100K', 'ats_tip': 'HR resumes should model best practice — if your own resume wouldn\'t pass the ATS systems you manage, that\'s a red flag for hiring committees.', 'common_mistake': 'Writing "responsible for recruitment" instead of "Reduced time-to-hire from 45 to 28 days while filling 60+ positions annually across 5 departments."'},
+    'customer-service': {'title': 'Resume Checker for Customer Service', 'role': 'Customer Service Representative', 'keywords': 'Customer Satisfaction, First Call Resolution, CRM, Zendesk, Conflict Resolution, Upselling, NPS, Call Handling, Complaint Resolution, SLA, Multi-channel Support', 'salary': '$30-50K', 'ats_tip': 'Customer service resumes with specific metrics (calls handled per day, satisfaction scores, resolution rates) stand out from the hundreds of generic applications.', 'common_mistake': 'Saying "handled customer enquiries" — quantify it: "Resolved 60+ customer enquiries daily with 96% first-call resolution and 4.8/5.0 satisfaction rating."'},
+    'product-manager': {'title': 'Resume Checker for Product Managers', 'role': 'Product Manager', 'keywords': 'Product Strategy, Roadmap, User Research, A/B Testing, Stakeholder Management, Agile, Sprint Planning, KPIs, OKRs, Go-to-Market, PRD, User Stories, Prioritisation', 'salary': '$100-170K', 'ats_tip': 'PM resumes that tie features to business outcomes ("Launched X feature driving 20% increase in activation") outperform those that just list features shipped.', 'common_mistake': 'Listing features built without business impact. "Shipped dark mode" vs "Shipped dark mode, increasing daily active usage by 15% and reducing churn by 8%."'},
+    'electrician': {'title': 'Resume Checker for Electricians', 'role': 'Electrician', 'keywords': 'NEC, Electrical Installation, Wiring, Troubleshooting, Blueprint Reading, Safety Compliance, Commercial, Residential, Industrial, PLC, 18th Edition, JIB', 'salary': '$45-80K', 'ats_tip': 'Trade resumes that specify certifications, licence numbers, and types of installations (commercial vs residential) score much higher with construction recruiters.', 'common_mistake': 'Not listing specific certifications and their expiry dates. Include your ECS card level, 18th Edition, and any manufacturer-specific qualifications.'},
+    'warehouse-worker': {'title': 'Resume Checker for Warehouse Workers', 'role': 'Warehouse Worker', 'keywords': 'Forklift, Inventory Management, Order Picking, WMS, Health & Safety, Packing, Shipping, Receiving, Barcode Scanning, Stock Control, OSHA, Manual Handling', 'salary': '$28-42K', 'ats_tip': 'Warehouse resumes with forklift certifications, specific WMS systems used, and order accuracy rates get prioritised by logistics recruiters using ATS.', 'common_mistake': 'Writing "picked orders in warehouse" — instead: "Picked and packed 200+ orders daily with 99.8% accuracy using RF scanning in a 100,000 sq ft distribution centre."'},
+    'executive': {'title': 'Resume Checker for Executives', 'role': 'Executive / C-Suite', 'keywords': 'P&L Management, Strategic Planning, Board Relations, M&A, Revenue Growth, Organisational Transformation, Stakeholder Management, Governance, Investor Relations, Scaling', 'salary': '$150-500K+', 'ats_tip': 'Executive resumes need a strong brand narrative. Lead with a 4-sentence summary that quantifies your career impact across revenue, team size, and market share.', 'common_mistake': 'Being too modest. Executive resumes must lead with headline numbers: "Led £50M division through 200% revenue growth over 3 years, expanding team from 40 to 150."'},
+    'recent-graduate': {'title': 'Resume Checker for Recent Graduates', 'role': 'Recent Graduate', 'keywords': 'Degree Classification, Relevant Coursework, Internship, Dissertation, Volunteering, Society Leadership, Technical Skills, Languages, Transferable Skills', 'salary': '$30-50K', 'ats_tip': 'Graduate resumes should lead with education and relevant coursework, then emphasise transferable skills from internships, part-time work, and university projects.', 'common_mistake': 'Listing irrelevant part-time jobs without connecting them to transferable skills. "Worked at Tesco" becomes "Managed high-volume customer interactions in fast-paced retail environment, handling 200+ transactions daily."'},
+    'career-changer': {'title': 'Resume Checker for Career Changers', 'role': 'Career Changer', 'keywords': 'Transferable Skills, Professional Development, Relevant Certification, Cross-functional, Adaptability, Continuous Learning, Industry Transition', 'salary': 'Varies', 'ats_tip': 'Career change resumes should use a combination format — lead with a skills summary and relevant achievements before chronological experience. This passes ATS while highlighting fit.', 'common_mistake': 'Using your old industry\'s jargon. Research the target industry\'s keywords and translate your experience into their language. "Managed P&L" in retail becomes "Budget Management" in non-profit.'},
+    'remote-worker': {'title': 'Resume Checker for Remote Jobs', 'role': 'Remote Worker', 'keywords': 'Remote Collaboration, Asynchronous Communication, Self-Directed, Zoom, Slack, Project Management Tools, Time Zone Management, Virtual Team Leadership, Documentation', 'salary': 'Varies', 'ats_tip': 'Remote job applications should explicitly mention remote work experience, tools used for collaboration, and evidence of self-direction and async communication skills.', 'common_mistake': 'Not mentioning remote experience at all. If you\'ve worked remotely, say so: "Collaborated with distributed team across 4 time zones using Slack, Notion, and Zoom."'},
+    'freelancer': {'title': 'Resume Checker for Freelancers', 'role': 'Freelancer / Contractor', 'keywords': 'Client Management, Project Delivery, Contract, Scope Management, Proposals, Business Development, Portfolio, Multi-client, Deadline Management', 'salary': 'Varies', 'ats_tip': 'Freelance resumes should group similar projects under one "Freelance [Role]" heading with bullet points per major client, rather than listing each gig separately.', 'common_mistake': 'Listing 20 tiny gigs separately. Group them: "Freelance Web Developer (2022-2026) — Delivered 35+ projects for clients including [notable names], averaging 4.9/5.0 satisfaction."'},
+    'healthcare-worker': {'title': 'Resume Checker for Healthcare Workers', 'role': 'Healthcare Worker', 'keywords': 'Patient Care, Clinical Skills, Medical Records, Infection Control, CPR, Manual Handling, Care Plans, Medication Administration, Risk Assessment, CQC, NHS', 'salary': '$25-55K', 'ats_tip': 'Healthcare resumes must list all current certifications with expiry dates. DBS check status, mandatory training completion, and specific care settings boost ATS scores significantly.', 'common_mistake': 'Not specifying care setting and patient demographics. "Provided patient care" vs "Delivered personal care to 12 elderly residents with dementia in a CQC-rated Outstanding care home."'},
+}
+
+
 BLOG_POSTS = [
     {
         'slug': 'what-is-ats-score',
@@ -704,6 +729,54 @@ def blog_post(slug):
     if not post:
         return redirect('/blog')
     return render_template('blog_post.html', post=post)
+
+
+@app.route('/resume-checker-for/<role_slug>')
+def role_page(role_slug):
+    page = ROLE_PAGES.get(role_slug)
+    if not page:
+        return redirect('/')
+    return render_template('role_landing.html', page=page, slug=role_slug)
+
+
+@app.route('/embed')
+def embed_page():
+    return render_template('embed.html')
+
+
+@app.route('/embed.js')
+def embed_script():
+    js = '''(function(){
+var d=document,s=d.createElement("div");
+s.innerHTML='<a href="https://cvroast.com/?ref=embed" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;padding:12px 24px;background:#0a0a0b;color:#fff;font-family:-apple-system,sans-serif;font-size:14px;font-weight:600;border-radius:10px;text-decoration:none;border:1px solid #252530;transition:all 0.2s" onmouseover="this.style.borderColor=\'#ff6b2c\'" onmouseout="this.style.borderColor=\'#252530\'"><span style="font-size:18px">\\ud83d\\udd25</span> Check Your Resume Score Free <span style="color:#ff6b2c;font-weight:700">→</span></a>';
+var t=d.currentScript||d.querySelector("script[src*=\\"cvroast.com/embed.js\\"]");
+if(t)t.parentNode.insertBefore(s,t);
+})();'''
+    return js, 200, {'Content-Type': 'application/javascript', 'Cache-Control': 'public, max-age=86400'}
+
+
+@app.route('/feed.xml')
+def rss_feed():
+    items = ''
+    for post in BLOG_POSTS:
+        items += f'''
+    <item>
+      <title>{post["title"]}</title>
+      <link>https://cvroast.com/blog/{post["slug"]}</link>
+      <description>{post["meta"]}</description>
+      <guid>https://cvroast.com/blog/{post["slug"]}</guid>
+    </item>'''
+    rss = f'''<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>CVRoast Blog</title>
+    <link>https://cvroast.com/blog</link>
+    <description>Expert resume and CV advice to help you get more interviews.</description>
+    <language>en</language>
+    <atom:link href="https://cvroast.com/feed.xml" rel="self" type="application/rss+xml"/>{items}
+  </channel>
+</rss>'''
+    return rss, 200, {'Content-Type': 'application/rss+xml'}
 
 
 @app.route('/score/<int:score>')

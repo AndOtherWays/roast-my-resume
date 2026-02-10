@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page.title }} — Free ATS Score | CVRoast</title>
+    <meta name="description" content="Free resume checker for {{ page.role }}s. Get your ATS score in 10 seconds with specific feedback on {{ page.role.lower() }} keywords, formatting, and achievements.">
+    <meta property="og:title" content="{{ page.title }} — CVRoast">
+    <meta property="og:description" content="Free ATS resume checker built for {{ page.role }}s. Instant score and specific feedback.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://cvroast.com/resume-checker-for/{{ slug }}">
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+    <link rel="canonical" href="https://cvroast.com/resume-checker-for/{{ slug }}">
+    <link rel="alternate" hreflang="en-gb" href="https://cvroast.com/resume-checker-for/{{ slug }}">
+    <link rel="alternate" hreflang="en-us" href="https://cvroast.com/resume-checker-for/{{ slug }}">
+    <link rel="alternate" hreflang="en-au" href="https://cvroast.com/resume-checker-for/{{ slug }}">
+    <link rel="alternate" hreflang="x-default" href="https://cvroast.com/resume-checker-for/{{ slug }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            {
+                "@type": "Question",
+                "name": "What ATS keywords should a {{ page.role }} resume include?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Key ATS keywords for {{ page.role }} resumes include: {{ page.keywords }}. Include these naturally in your bullet points and skills section."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "What is a good ATS score for a {{ page.role }} resume?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "For {{ page.role }} positions, aim for an ATS score of 65 or above. Most {{ page.role }} resumes we see score between 30-55, leaving significant room for improvement with the right keywords and formatting."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "How can I check my {{ page.role }} resume for free?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Upload your resume to CVRoast for a free instant ATS score with 5 specific feedback points. No signup or email required. If you want a full professional rewrite, it's a one-time payment."
+                }
+            }
+        ]
+    }
+    </script>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg: #08080a; --surface: #111114; --surface-2: #19191e;
+            --border: #252530; --text: #ededf0; --text-muted: #7c7c8a;
+            --accent: #ff6b2c; --accent-soft: rgba(255,107,44,0.12);
+            --accent-glow: #ff8f56; --green: #22c55e; --radius: 14px;
+        }
+        body {
+            font-family: 'DM Sans', -apple-system, sans-serif;
+            background: var(--bg); color: var(--text);
+            line-height: 1.6; -webkit-font-smoothing: antialiased;
+        }
+        nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            padding: 14px 24px;
+            background: rgba(8,8,10,0.88); backdrop-filter: blur(24px);
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .logo {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700; font-size: 19px; text-decoration: none;
+            background: linear-gradient(135deg, var(--accent), var(--accent-glow));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .nav-cta {
+            padding: 9px 22px; border-radius: 8px; font-size: 14px; font-weight: 600;
+            font-family: 'DM Sans', sans-serif;
+            background: var(--accent); color: #fff; border: none; cursor: pointer;
+            text-decoration: none; transition: all 0.2s;
+        }
+        .nav-cta:hover { background: var(--accent-glow); transform: translateY(-1px); }
+
+        .container { max-width: 780px; margin: 0 auto; padding: 120px 24px 60px; }
+
+        .breadcrumb { font-size: 13px; color: var(--text-muted); margin-bottom: 32px; }
+        .breadcrumb a { color: var(--accent); text-decoration: none; }
+
+        h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(30px, 5vw, 46px); font-weight: 700;
+            line-height: 1.1; letter-spacing: -0.02em; margin-bottom: 16px;
+        }
+        h1 span {
+            background: linear-gradient(135deg, var(--accent), #ffb088);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .subtitle {
+            font-size: 17px; color: var(--text-muted); line-height: 1.7;
+            margin-bottom: 32px; max-width: 600px;
+        }
+
+        .cta-btn {
+            display: inline-flex; align-items: center; gap: 10px;
+            padding: 16px 36px; font-size: 17px; font-weight: 700;
+            font-family: 'DM Sans', sans-serif;
+            background: linear-gradient(135deg, var(--accent), #e05a1a);
+            color: #fff; border: none; border-radius: var(--radius); cursor: pointer;
+            text-decoration: none; transition: all 0.25s;
+            box-shadow: 0 4px 20px rgba(255,107,44,0.25);
+            margin-bottom: 48px;
+        }
+        .cta-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 32px rgba(255,107,44,0.4); }
+        .trust { font-size: 13px; color: var(--text-muted); margin-top: 12px; }
+
+        /* Keywords */
+        .keywords-section { margin-bottom: 48px; }
+        .section-label {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 13px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.08em; color: var(--accent); margin-bottom: 16px;
+        }
+        .section-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 24px; font-weight: 700; margin-bottom: 16px;
+        }
+        .keywords-grid {
+            display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;
+        }
+        .keyword {
+            padding: 6px 14px; font-size: 13px; font-weight: 600;
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 100px; color: var(--text);
+        }
+        .section-text { font-size: 15px; color: var(--text-muted); line-height: 1.7; margin-bottom: 16px; }
+
+        /* Tips card */
+        .tip-card {
+            padding: 24px; background: var(--surface);
+            border: 1px solid var(--border); border-left: 3px solid var(--accent);
+            border-radius: 0 var(--radius) var(--radius) 0;
+            margin-bottom: 24px;
+        }
+        .tip-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+        .tip-card p { font-size: 14px; color: var(--text-muted); line-height: 1.7; }
+
+        /* FAQ */
+        .faq { margin-top: 48px; }
+        .faq-item { border-bottom: 1px solid var(--border); padding: 20px 0; cursor: pointer; }
+        .faq-q {
+            font-weight: 600; font-size: 15px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .faq-q::after { content: '+'; font-size: 20px; color: var(--text-muted); transition: transform 0.2s; }
+        .faq-item.open .faq-q::after { content: '\2212'; }
+        .faq-a {
+            max-height: 0; overflow: hidden; transition: max-height 0.3s ease;
+            font-size: 14px; color: var(--text-muted); line-height: 1.7;
+        }
+        .faq-item.open .faq-a { max-height: 300px; padding-top: 12px; }
+
+        /* Bottom CTA */
+        .bottom-cta {
+            text-align: center; padding: 56px 24px; margin-top: 48px;
+            background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+        }
+        .bottom-cta h2 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 26px; font-weight: 700; margin-bottom: 12px;
+        }
+        .bottom-cta p { color: var(--text-muted); font-size: 15px; margin-bottom: 24px; }
+
+        /* Related roles */
+        .related { margin-top: 48px; }
+        .related h3 { font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+        .related-links { display: flex; flex-wrap: wrap; gap: 8px; }
+        .related-links a {
+            padding: 8px 16px; font-size: 13px; font-weight: 600;
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 8px; color: var(--text); text-decoration: none;
+            transition: border-color 0.2s;
+        }
+        .related-links a:hover { border-color: var(--accent); color: var(--accent); }
+
+        footer {
+            text-align: center; padding: 40px 24px; font-size: 13px;
+            color: var(--text-muted); border-top: 1px solid var(--border); margin-top: 60px;
+        }
+        footer a { color: var(--text-muted); text-decoration: none; font-size: 12px; }
+
+        @media (max-width: 640px) {
+            .container { padding: 100px 16px 40px; }
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <a href="/" class="logo">CVRoast</a>
+    <a href="/#get-started" class="nav-cta">Try Free</a>
+</nav>
+
+<div class="container">
+    <div class="breadcrumb">
+        <a href="/">CVRoast</a> &rsaquo; <a href="/free-resume-checker">Resume Checker</a> &rsaquo; {{ page.role }}
+    </div>
+
+    <h1>{{ page.title.split(' for ')[0] }} for <span>{{ page.role }}s</span></h1>
+    <p class="subtitle">Upload your {{ page.role.lower() }} resume and get an instant ATS score with specific feedback on keywords, formatting, and achievements. Free, no signup required.</p>
+
+    <a href="/#get-started" class="cta-btn">Check My {{ page.role }} Resume Free</a>
+    <p class="trust">No signup. No email. Results in 10 seconds.</p>
+
+    <div class="keywords-section">
+        <div class="section-label">Must-have keywords</div>
+        <div class="section-title">ATS Keywords for {{ page.role }} Resumes</div>
+        <div class="keywords-grid">
+            {% for kw in page.keywords.split(', ') %}
+            <span class="keyword">{{ kw }}</span>
+            {% endfor %}
+        </div>
+        <p class="section-text">These are the keywords that ATS systems scan for when screening {{ page.role.lower() }} applications. Include them naturally in your bullet points and skills section — don't just list them.</p>
+    </div>
+
+    <div class="tip-card">
+        <h3>ATS Tip for {{ page.role }}s</h3>
+        <p>{{ page.ats_tip }}</p>
+    </div>
+
+    <div class="tip-card">
+        <h3>Common Mistake</h3>
+        <p>{{ page.common_mistake }}</p>
+    </div>
+
+    {% if page.salary != 'Varies' %}
+    <div class="tip-card">
+        <h3>{{ page.role }} Salary Range</h3>
+        <p>Typical salary range: <strong>{{ page.salary }}</strong>. A well-optimized resume with the right keywords and quantified achievements can help you land at the higher end of this range.</p>
+    </div>
+    {% endif %}
+
+    <div class="faq">
+        <div class="section-title">Frequently Asked Questions</div>
+        <div class="faq-item" onclick="this.classList.toggle('open')">
+            <div class="faq-q">What ATS keywords should a {{ page.role.lower() }} resume include?</div>
+            <div class="faq-a">Key ATS keywords for {{ page.role.lower() }} resumes include: {{ page.keywords }}. Include these naturally throughout your bullet points and skills section rather than keyword-stuffing.</div>
+        </div>
+        <div class="faq-item" onclick="this.classList.toggle('open')">
+            <div class="faq-q">What is a good ATS score for a {{ page.role.lower() }} resume?</div>
+            <div class="faq-a">For {{ page.role.lower() }} positions, aim for an ATS score of 65 or above. Most resumes we analyse score between 30-55, which means they're likely being filtered out before a human sees them. Use our free checker to see where you stand.</div>
+        </div>
+        <div class="faq-item" onclick="this.classList.toggle('open')">
+            <div class="faq-q">How can I check my {{ page.role.lower() }} resume for free?</div>
+            <div class="faq-a">Upload your resume to CVRoast for a free instant ATS score with 5 specific feedback points. It takes 10 seconds, requires no signup or email, and tells you exactly what to fix. If you want a full professional rewrite, it's a one-time payment.</div>
+        </div>
+    </div>
+
+    <div class="bottom-cta">
+        <h2>Check your {{ page.role.lower() }} resume now</h2>
+        <p>See your ATS score in 10 seconds. Free, no signup.</p>
+        <a href="/#get-started" class="cta-btn">Check My Resume Free</a>
+    </div>
+
+    <div class="related">
+        <h3>Resume checkers by role</h3>
+        <div class="related-links">
+            <a href="/resume-checker-for/nurse">Nurse</a>
+            <a href="/resume-checker-for/software-engineer">Software Engineer</a>
+            <a href="/resume-checker-for/teacher">Teacher</a>
+            <a href="/resume-checker-for/marketing-manager">Marketing Manager</a>
+            <a href="/resume-checker-for/project-manager">Project Manager</a>
+            <a href="/resume-checker-for/data-analyst">Data Analyst</a>
+            <a href="/resume-checker-for/accountant">Accountant</a>
+            <a href="/resume-checker-for/product-manager">Product Manager</a>
+            <a href="/resume-checker-for/recent-graduate">Recent Graduate</a>
+            <a href="/resume-checker-for/executive">Executive</a>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <div style="margin-bottom:16px;display:flex;gap:16px;justify-content:center;flex-wrap:wrap">
+        <a href="/free-resume-checker">Free Resume Checker</a>
+        <a href="/ats-score-checker">ATS Score Checker</a>
+        <a href="/resume-review">Resume Review</a>
+        <a href="/cv-review">CV Review</a>
+        <a href="/resume-roast">Resume Roast</a>
+        <a href="/blog">Blog</a>
+    </div>
+    &copy; 2026 CVRoast. Brutally honest resume feedback.
+    <br><a href="/privacy">Privacy Policy</a>
+</footer>
+
+</body>
+</html>
