@@ -3,4 +3,4 @@ Allow: /
 Disallow: /api/
 Disallow: /admin/
 
-Sitemap: https://cvroast.com/static/sitemap.xml
+Sitemap: https://cvroast.com/sitemap.xml

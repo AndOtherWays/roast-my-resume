@@ -37,6 +37,24 @@
         }
     }
     </script>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            {% for q, a in page.faq %}
+            {
+                "@type": "Question",
+                "name": "{{ q }}",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "{{ a }}"
+                }
+            }{% if not loop.last %},{% endif %}
+            {% endfor %}
+        ]
+    }
+    </script>
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         :root {
