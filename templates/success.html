@@ -97,7 +97,24 @@
             background: #ffffff; color: #1a1a2e; padding: 48px 44px;
             border-radius: 4px; box-shadow: 0 4px 24px rgba(0,0,0,0.4);
             line-height: 1.6; font-size: 14px;
+            transition: box-shadow 0.2s;
         }
+        .cv-document.editing {
+            box-shadow: 0 0 0 2px var(--fire), 0 4px 24px rgba(0,0,0,0.4);
+        }
+        .cv-document.editing *[contenteditable="true"]:hover {
+            outline: 1px dashed #ccc; outline-offset: 2px; border-radius: 2px;
+        }
+        .cv-document.editing *[contenteditable="true"]:focus {
+            outline: 2px solid var(--fire); outline-offset: 2px; border-radius: 2px;
+            background: #fffef5;
+        }
+        .edit-hint {
+            display: none; text-align: center; padding: 8px 16px; margin-bottom: 12px;
+            font-size: 12px; color: var(--fire); background: rgba(255,107,44,0.08);
+            border: 1px solid rgba(255,107,44,0.15); border-radius: 6px;
+        }
+        .edit-hint.visible { display: block; }
         .cv-name { font-size: 28px; font-weight: 800; color: #1a1a2e; margin-bottom: 2px; }
         .cv-title { font-size: 15px; color: #555; margin-bottom: 12px; }
         .cv-contact {
@@ -188,7 +205,7 @@
             * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
             body { background: white !important; margin: 0; padding: 0; }
             nav, .score-comparison, .cv-actions-top, .bottom-actions,
-            .email-note, .loading, .error, footer { display: none !important; }
+            .email-note, .edit-hint, .loading, .error, footer { display: none !important; }
             .container { padding: 0; max-width: 100%; }
             .cv-wrapper { display: block !important; }
             .cv-document {
@@ -240,12 +257,17 @@
         <div class="cv-actions-top">
             <h2>Your New CV</h2>
             <div class="btns">
+                <button class="btn btn-secondary btn-sm" id="editBtn" onclick="toggleEdit()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    Edit CV
+                </button>
                 <button class="btn btn-primary btn-sm" onclick="window.print()">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
                     Save as PDF
                 </button>
             </div>
         </div>
+        <div class="edit-hint" id="editHint">Click any text on the CV to edit it. Your changes will be included when you save as PDF.</div>
         <div class="cv-document" id="cvDocument"></div>
     </div>
 
@@ -413,6 +435,38 @@
         document.getElementById('cvDocument').innerHTML = html;
         document.getElementById('cvWrapper').classList.add('visible');
         document.getElementById('bottomActions').style.display = 'flex';
+    }
+
+    // --- Edit mode ---
+    let isEditing = false;
+
+    function toggleEdit() {
+        const doc = document.getElementById('cvDocument');
+        const btn = document.getElementById('editBtn');
+        const hint = document.getElementById('editHint');
+        isEditing = !isEditing;
+
+        if (isEditing) {
+            doc.classList.add('editing');
+            hint.classList.add('visible');
+            btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Done Editing';
+            btn.classList.remove('btn-secondary');
+            btn.classList.add('btn-primary');
+            // Make all text elements editable
+            doc.querySelectorAll('.cv-name, .cv-title, .cv-contact span, .cv-summary, .cv-skill-tag, .cv-job-title, .cv-job-meta, .cv-job li, .cv-cert-list li, .cv-section-title').forEach(el => {
+                el.setAttribute('contenteditable', 'true');
+            });
+        } else {
+            doc.classList.remove('editing');
+            hint.classList.remove('visible');
+            btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit CV';
+            btn.classList.remove('btn-primary');
+            btn.classList.add('btn-secondary');
+            // Remove editable
+            doc.querySelectorAll('[contenteditable]').forEach(el => {
+                el.removeAttribute('contenteditable');
+            });
+        }
     }
 
     // Start immediately
