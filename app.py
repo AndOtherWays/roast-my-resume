@@ -271,6 +271,119 @@ def index():
     return render_template('index.html', stripe_key=STRIPE_PUBLISHABLE_KEY)
 
 
+# --- SEO Landing Pages ---
+SEO_PAGES = {
+    'free-resume-checker': {
+        'title': 'Free Resume Checker — Instant ATS Score | CVRoast',
+        'h1': 'Free Resume Checker',
+        'h1_span': 'Instant ATS Score',
+        'subtitle': 'Upload your resume and get an instant ATS compatibility score out of 100. Find out exactly why your applications are getting rejected — in 10 seconds.',
+        'badge': 'Free ATS resume checker',
+        'meta_desc': 'Check your resume for free. Get an instant ATS compatibility score out of 100 with specific feedback on what to fix. No signup required.',
+        'features': [
+            ('ATS Compatibility Score', 'See exactly how your resume performs against the Applicant Tracking Systems that screen 75% of applications before a human sees them.'),
+            ('Keyword Analysis', 'Find out which industry-standard keywords are missing from your resume and why ATS systems are filtering you out.'),
+            ('Bullet Point Review', 'Get specific feedback on vague language like "responsible for" that makes recruiters skip your resume.'),
+            ('Instant Results', 'No signup, no email required. Paste your resume and get your score in under 10 seconds.'),
+        ],
+        'faq': [
+            ('What is an ATS score?', 'An ATS (Applicant Tracking System) score measures how well your resume can be parsed and ranked by the software that 75% of employers use to screen applications. A low score means your resume may never reach a human recruiter.'),
+            ('How accurate is this resume checker?', 'Our AI analyzes your resume against the same criteria ATS systems use: keyword relevance, formatting, achievement-based language, and quantified metrics. Most users find the score closely matches their real-world callback rate.'),
+            ('Is it really free?', 'Yes — the ATS score and 5 specific feedback points are completely free. If you want a full professional rewrite, that costs just a few dollars.'),
+        ],
+    },
+    'ats-score-checker': {
+        'title': 'ATS Score Checker — Is Your Resume Getting Past the Robots? | CVRoast',
+        'h1': 'ATS Score Checker',
+        'h1_span': 'Beat the Robots',
+        'subtitle': '75% of resumes are rejected by ATS software before a human ever sees them. Check your ATS score instantly and find out if yours makes the cut.',
+        'badge': 'Check your ATS score free',
+        'meta_desc': 'Free ATS score checker. Find out if your resume passes Applicant Tracking Systems. Instant score out of 100 with specific fixes. No signup needed.',
+        'features': [
+            ('ATS Parsing Test', 'See how ATS software reads your resume. Tables, graphics, and fancy formatting often break the parsing — we\'ll tell you if yours does.'),
+            ('Keyword Gap Analysis', 'Discover which job-relevant keywords are missing. ATS systems rank resumes by keyword matches — missing even one critical term can filter you out.'),
+            ('Format Compatibility', 'Find out if your resume format (PDF, DOCX) is ATS-friendly or if the robots are mangling your carefully written content.'),
+            ('Actionable Fix List', 'Get 5 specific, prioritized fixes you can make right now to boost your ATS score and start getting callbacks.'),
+        ],
+        'faq': [
+            ('What is an ATS and why does it matter?', 'An Applicant Tracking System (ATS) is software used by employers to automatically screen resumes. It parses your resume text, looks for relevant keywords, and ranks candidates. If your resume scores low, it\'s rejected before a recruiter ever sees it.'),
+            ('What ATS score do I need?', 'Most ATS systems have different thresholds, but generally: below 40 means you\'re likely getting auto-rejected, 40-60 is borderline, 60-80 is competitive, and 80+ means you\'re in great shape.'),
+            ('How can I improve my ATS score?', 'The most impactful changes: use standard section headings, include industry keywords from the job description, quantify achievements with numbers, and avoid tables/columns/graphics that break ATS parsing.'),
+        ],
+    },
+    'resume-review': {
+        'title': 'Free AI Resume Review — Brutally Honest Feedback | CVRoast',
+        'h1': 'AI Resume Review',
+        'h1_span': 'Brutally Honest',
+        'subtitle': 'Stop getting polite, useless feedback. Our AI gives you a real score and tells you exactly what\'s wrong with your resume — no sugarcoating.',
+        'badge': 'Honest AI resume review',
+        'meta_desc': 'Get a brutally honest AI resume review in 10 seconds. Real ATS score, specific feedback, and actionable fixes. Free, no signup required.',
+        'features': [
+            ('No Sugarcoating', 'Unlike friends and family who say "looks great!", our AI tells you the truth. Most people score 30-50 and are shocked by what they learn.'),
+            ('Specific to YOUR Resume', 'Not generic advice. Every point is about YOUR specific content, YOUR bullet points, YOUR keywords. Personalised, actionable feedback.'),
+            ('Professional Rewrite Option', 'See your score and want it fixed? For a few dollars, our AI completely rewrites your CV with ATS-optimized language, real metrics, and professional formatting.'),
+            ('Privacy First', 'Your resume is processed in memory and automatically deleted within 2 hours. We never store, sell, or share your data.'),
+        ],
+        'faq': [
+            ('How is this different from other resume reviewers?', 'Most resume review tools give you generic advice like "add more keywords." We give you a specific score, point out exact phrases that are hurting you, and explain why — with a bit of humour to make it memorable.'),
+            ('Can AI really review a resume effectively?', 'Our AI has been trained on what makes resumes successful with ATS systems and recruiters. It catches issues humans miss: vague language, missing metrics, keyword gaps, and formatting problems that break ATS parsing.'),
+            ('What happens after the free review?', 'You get your score and 5 specific roasts for free. If you want, you can upgrade to a complete professional rewrite that takes your score from where it is to 75-90+ range.'),
+        ],
+    },
+    'cv-review': {
+        'title': 'Free CV Review Online — Get Your CV Scored in 10 Seconds | CVRoast',
+        'h1': 'Free CV Review',
+        'h1_span': '10 Seconds Flat',
+        'subtitle': 'Upload your CV and get an honest score with specific feedback. Find out why you\'re not getting interviews — and how to fix it fast.',
+        'badge': 'Instant CV review',
+        'meta_desc': 'Free online CV review with instant scoring. Upload your CV (PDF, DOCX) or paste text. Get an ATS score and specific feedback in 10 seconds.',
+        'features': [
+            ('Upload Any Format', 'PDF, DOCX, or just paste your text. Our parser extracts your CV content and analyses every section, bullet point, and keyword.'),
+            ('UK & International CVs', 'Built for CVs worldwide — whether you\'re in the UK, US, Australia, or anywhere else. Currency and advice automatically localised.'),
+            ('Professional CV Rewrite', 'Want more than feedback? Get your entire CV professionally rewritten with ATS-optimized language, achievement metrics, and two format choices.'),
+            ('Emailed to You', 'Your rewritten CV is emailed to you instantly — open on any device, print to PDF, or edit before sending to employers.'),
+        ],
+        'faq': [
+            ('What\'s the difference between a CV and a resume?', 'In the UK and much of the world, "CV" is the standard term. In the US, "resume" is more common for job applications. Our tool works perfectly for both — the analysis and scoring is the same.'),
+            ('Can I upload a PDF CV?', 'Yes! Upload PDF, DOCX, or TXT files up to 5MB. Our parser extracts the text and analyses it. You can also paste your CV text directly if you prefer.'),
+            ('How much does the CV rewrite cost?', 'The review and score are completely free. A full professional rewrite with ATS optimization, metrics, and formatting is just a few dollars — a fraction of what human CV writers charge.'),
+        ],
+    },
+    'resume-roast': {
+        'title': 'Roast My Resume — AI That Tells You the Truth | CVRoast',
+        'h1': 'Roast My Resume',
+        'h1_span': 'Handle the Truth?',
+        'subtitle': 'Your resume probably sucks. Find out exactly why in 10 seconds. Our AI is brutally honest, a bit funny, and genuinely helpful.',
+        'badge': 'The original resume roaster',
+        'meta_desc': 'Get your resume roasted by AI. Brutally honest score out of 100 with 5 specific roasts. Free, instant, no signup. Can you handle the truth?',
+        'features': [
+            ('Brutal Honesty', 'No participation trophies here. If your resume says "responsible for managing things," we\'re going to call that out. Specifically.'),
+            ('Actually Funny', 'Life\'s too short for boring feedback. Our roasts are designed to make you laugh AND make you fix your resume.'),
+            ('Real ATS Score', 'Not just jokes — you get a genuine ATS compatibility score calibrated against real applicant tracking systems.'),
+            ('The Fix', 'After the roast, get your entire resume professionally rewritten for a few dollars. Go from roasted to ready in 60 seconds.'),
+        ],
+        'faq': [
+            ('Will this actually help me or just insult me?', 'Both! Every roast points out a real problem with your resume. The humour makes it memorable — you\'ll actually fix the issues because you can\'t unsee them.'),
+            ('What\'s a typical roast score?', 'Most people score between 30-60. Below 30 means your resume needs serious work. Above 70 means you\'re doing well. We\'ve never seen a 100.'),
+            ('Is my resume data private?', 'Completely. Your resume is processed in memory, never stored permanently, and automatically deleted within 2 hours. We don\'t sell or share any data.'),
+        ],
+    },
+}
+
+
+@app.route('/free-resume-checker')
+@app.route('/ats-score-checker')
+@app.route('/resume-review')
+@app.route('/cv-review')
+@app.route('/resume-roast')
+def seo_page():
+    slug = request.path.strip('/')
+    page = SEO_PAGES.get(slug)
+    if page:
+        return render_template('seo_landing.html', page=page, stripe_key=STRIPE_PUBLISHABLE_KEY)
+    return redirect('/')
+
+
 @app.route('/api/roast', methods=['POST'])
 def free_roast():
     ip = request.headers.get('X-Forwarded-For', request.remote_addr) or '0.0.0.0'

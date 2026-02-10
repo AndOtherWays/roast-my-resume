@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page.title }}</title>
+    <meta name="description" content="{{ page.meta_desc }}">
+    <meta property="og:title" content="{{ page.title }}">
+    <meta property="og:description" content="{{ page.meta_desc }}">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://cvroast.com/{{ request.path.strip('/') }}">
+    <meta property="og:image" content="https://cvroast.com/static/og.png">
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+    <link rel="canonical" href="https://cvroast.com/{{ request.path.strip('/') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "CVRoast",
+        "url": "https://cvroast.com",
+        "description": "{{ page.meta_desc }}",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "Web",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD",
+            "description": "Free resume ATS score and feedback"
+        }
+    }
+    </script>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg: #08080a; --surface: #111114; --surface-2: #19191e;
+            --border: #252530; --text: #ededf0; --text-muted: #7c7c8a;
+            --accent: #ff6b2c; --accent-soft: rgba(255,107,44,0.12);
+            --accent-glow: #ff8f56; --green: #22c55e; --radius: 14px;
+        }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'DM Sans', -apple-system, sans-serif;
+            background: var(--bg); color: var(--text);
+            line-height: 1.6; min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* --- Nav --- */
+        nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            padding: 14px 24px;
+            background: rgba(8,8,10,0.88); backdrop-filter: blur(24px);
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .logo {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700; font-size: 19px; text-decoration: none;
+            background: linear-gradient(135deg, var(--accent), var(--accent-glow));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .nav-cta {
+            padding: 9px 22px; border-radius: 8px; font-size: 14px; font-weight: 600;
+            font-family: 'DM Sans', sans-serif;
+            background: var(--accent); color: #fff; border: none; cursor: pointer;
+            text-decoration: none; transition: all 0.2s;
+        }
+        .nav-cta:hover { background: var(--accent-glow); transform: translateY(-1px); }
+
+        /* --- Hero --- */
+        .hero {
+            padding: 140px 24px 64px; text-align: center; max-width: 780px; margin: 0 auto;
+            position: relative;
+        }
+        .hero::before {
+            content: ''; position: absolute; top: 60px; left: 50%; transform: translateX(-50%);
+            width: 700px; height: 500px;
+            background: radial-gradient(ellipse, rgba(255,107,44,0.06) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 7px 18px; border-radius: 100px; font-size: 13px; font-weight: 600;
+            background: var(--accent-soft); border: 1px solid rgba(255,107,44,0.18);
+            color: var(--accent-glow); margin-bottom: 28px;
+        }
+        .badge-dot {
+            width: 7px; height: 7px; border-radius: 50%; background: var(--accent);
+            animation: pulse 2s ease-in-out infinite;
+        }
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+        h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(38px, 6.5vw, 64px); font-weight: 700;
+            line-height: 1.08; letter-spacing: -0.03em; margin-bottom: 20px;
+        }
+        h1 span {
+            display: block;
+            background: linear-gradient(135deg, var(--accent), #ffb088);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .subtitle {
+            font-size: clamp(15px, 2.2vw, 18px); color: var(--text-muted);
+            max-width: 540px; margin: 0 auto 40px; line-height: 1.65;
+        }
+
+        /* --- CTA Button --- */
+        .hero-cta {
+            display: inline-flex; align-items: center; gap: 10px;
+            padding: 18px 44px; font-size: 17px; font-weight: 700;
+            font-family: 'DM Sans', sans-serif;
+            background: linear-gradient(135deg, var(--accent), #e05a1a);
+            color: #fff; border: none; border-radius: var(--radius); cursor: pointer;
+            text-decoration: none; transition: all 0.25s;
+            box-shadow: 0 4px 20px rgba(255,107,44,0.25);
+        }
+        .hero-cta:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 32px rgba(255,107,44,0.4);
+        }
+        .hero-cta svg { flex-shrink: 0; }
+
+        .trust-line {
+            margin-top: 20px; font-size: 13px; color: var(--text-muted);
+        }
+
+        /* --- Features --- */
+        .features {
+            max-width: 860px; margin: 0 auto; padding: 0 24px 80px;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+        }
+        .feature-card {
+            padding: 28px 24px;
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--radius); transition: border-color 0.2s;
+        }
+        .feature-card:hover { border-color: rgba(255,107,44,0.3); }
+        .feature-icon {
+            width: 40px; height: 40px; border-radius: 10px;
+            background: var(--accent-soft); display: flex; align-items: center; justify-content: center;
+            margin-bottom: 16px; color: var(--accent);
+        }
+        .feature-card h3 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 16px; font-weight: 700; margin-bottom: 8px;
+        }
+        .feature-card p { font-size: 14px; color: var(--text-muted); line-height: 1.65; }
+
+        /* --- How It Works --- */
+        .how-section {
+            max-width: 860px; margin: 0 auto; padding: 0 24px 80px; text-align: center;
+        }
+        .how-section h2 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 32px; font-weight: 700; margin-bottom: 40px;
+        }
+        .steps { display: flex; gap: 24px; justify-content: center; }
+        .step {
+            flex: 1; max-width: 240px; text-align: center;
+            padding: 24px 16px;
+        }
+        .step-num {
+            width: 48px; height: 48px; border-radius: 50%; margin: 0 auto 16px;
+            background: var(--accent-soft); border: 2px solid rgba(255,107,44,0.2);
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 20px; font-weight: 700; color: var(--accent);
+        }
+        .step h3 {
+            font-size: 15px; font-weight: 700; margin-bottom: 6px;
+        }
+        .step p { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+
+        /* --- FAQ --- */
+        .faq {
+            max-width: 680px; margin: 0 auto; padding: 0 24px 80px;
+        }
+        .faq h2 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 28px; font-weight: 700; text-align: center; margin-bottom: 32px;
+        }
+        .faq-item {
+            border-bottom: 1px solid var(--border); padding: 20px 0; cursor: pointer;
+        }
+        .faq-q {
+            font-weight: 600; font-size: 15px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .faq-q::after { content: '+'; font-size: 20px; color: var(--text-muted); transition: transform 0.2s; }
+        .faq-item.open .faq-q::after { content: '\2212'; }
+        .faq-a {
+            max-height: 0; overflow: hidden; transition: max-height 0.3s ease;
+            font-size: 14px; color: var(--text-muted); line-height: 1.7;
+        }
+        .faq-item.open .faq-a { max-height: 300px; padding-top: 12px; }
+
+        /* --- Bottom CTA --- */
+        .bottom-cta {
+            text-align: center; padding: 64px 24px;
+            background: var(--surface); border-top: 1px solid var(--border);
+        }
+        .bottom-cta h2 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 28px; font-weight: 700; margin-bottom: 12px;
+        }
+        .bottom-cta p { color: var(--text-muted); font-size: 15px; margin-bottom: 28px; }
+
+        /* --- Footer --- */
+        footer {
+            text-align: center; padding: 40px 24px; font-size: 13px;
+            color: var(--text-muted); border-top: 1px solid var(--border);
+        }
+        footer a { color: var(--text-muted); }
+
+        @media (max-width: 640px) {
+            .hero { padding: 120px 16px 48px; }
+            .features { grid-template-columns: 1fr; }
+            .steps { flex-direction: column; align-items: center; }
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <a href="/" class="logo">CVRoast</a>
+    <a href="/#get-started" class="nav-cta">Try Free</a>
+</nav>
+
+<section class="hero">
+    <div class="badge"><span class="badge-dot"></span> {{ page.badge }}</div>
+    <h1>{{ page.h1 }}<span>{{ page.h1_span }}</span></h1>
+    <p class="subtitle">{{ page.subtitle }}</p>
+    <a href="/#get-started" class="hero-cta">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Check My Resume Free
+    </a>
+    <p class="trust-line">No signup. No email. Results in 10 seconds.</p>
+</section>
+
+<section class="features">
+    {% for title, desc in page.features %}
+    <div class="feature-card">
+        <div class="feature-icon">
+            {% if loop.index == 1 %}
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            {% elif loop.index == 2 %}
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            {% elif loop.index == 3 %}
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            {% else %}
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            {% endif %}
+        </div>
+        <h3>{{ title }}</h3>
+        <p>{{ desc }}</p>
+    </div>
+    {% endfor %}
+</section>
+
+<section class="how-section">
+    <h2>How It Works</h2>
+    <div class="steps">
+        <div class="step">
+            <div class="step-num">1</div>
+            <h3>Upload or Paste</h3>
+            <p>Upload your PDF/DOCX or paste your resume text directly. Takes 5 seconds.</p>
+        </div>
+        <div class="step">
+            <div class="step-num">2</div>
+            <h3>Get Roasted</h3>
+            <p>Our AI scores your resume and gives you 5 brutally honest points of feedback.</p>
+        </div>
+        <div class="step">
+            <div class="step-num">3</div>
+            <h3>Fix It</h3>
+            <p>Use the free feedback or upgrade to a full professional rewrite for just a few dollars.</p>
+        </div>
+    </div>
+</section>
+
+<section class="faq">
+    <h2>Common Questions</h2>
+    {% for q, a in page.faq %}
+    <div class="faq-item" onclick="this.classList.toggle('open')">
+        <div class="faq-q">{{ q }}</div>
+        <div class="faq-a">{{ a }}</div>
+    </div>
+    {% endfor %}
+</section>
+
+<section class="bottom-cta">
+    <h2>Ready to find out your score?</h2>
+    <p>Most people score between 30-60. The truth hurts — but it helps more.</p>
+    <a href="/#get-started" class="hero-cta">Check My Resume Free</a>
+</section>
+
+<footer>
+    &copy; 2026 CVRoast. Brutally honest resume feedback.
+    <br><a href="/privacy">Privacy Policy</a>
+</footer>
+
+</body>
+</html>
