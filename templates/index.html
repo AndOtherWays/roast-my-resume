@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roast My Resume — Free AI Resume Review</title>
+    <meta name="description" content="Get brutally honest AI feedback on your resume in 10 seconds. Free instant roast + optional full rewrite for $4.99.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg: #0a0a0b;
+            --surface: #131316;
+            --surface-2: #1a1a1f;
+            --border: #2a2a30;
+            --text: #e8e8ed;
+            --text-muted: #8e8e9a;
+            --fire: #ff6b2c;
+            --fire-glow: #ff8a50;
+            --fire-dark: #cc4a10;
+            --green: #22c55e;
+            --red: #ef4444;
+            --yellow: #eab308;
+            --radius: 12px;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* --- Nav --- */
+        nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            padding: 16px 24px;
+            background: rgba(10,10,11,0.85);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .logo {
+            font-weight: 800; font-size: 18px;
+            background: linear-gradient(135deg, var(--fire), var(--fire-glow));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .nav-cta {
+            padding: 8px 20px; border-radius: 8px; font-size: 14px; font-weight: 600;
+            background: var(--fire); color: #fff; border: none; cursor: pointer;
+            text-decoration: none; transition: all 0.2s;
+        }
+        .nav-cta:hover { background: var(--fire-glow); transform: translateY(-1px); }
+
+        /* --- Hero --- */
+        .hero {
+            padding: 140px 24px 80px; text-align: center; max-width: 800px; margin: 0 auto;
+            position: relative;
+        }
+        .hero::before {
+            content: ''; position: absolute; top: 80px; left: 50%; transform: translateX(-50%);
+            width: 600px; height: 400px;
+            background: radial-gradient(ellipse, rgba(255,107,44,0.08) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 6px 16px; border-radius: 100px; font-size: 13px; font-weight: 500;
+            background: rgba(255,107,44,0.1); border: 1px solid rgba(255,107,44,0.2);
+            color: var(--fire-glow); margin-bottom: 24px;
+        }
+        .badge-dot {
+            width: 6px; height: 6px; border-radius: 50%; background: var(--fire);
+            animation: pulse 2s ease-in-out infinite;
+        }
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+        h1 {
+            font-size: clamp(40px, 7vw, 72px); font-weight: 900; line-height: 1.05;
+            letter-spacing: -0.03em; margin-bottom: 20px;
+        }
+        h1 span {
+            background: linear-gradient(135deg, var(--fire), #ff9a5c);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .subtitle {
+            font-size: clamp(16px, 2.5vw, 20px); color: var(--text-muted);
+            max-width: 560px; margin: 0 auto 48px; line-height: 1.5;
+        }
+
+        /* --- Main Card --- */
+        .card {
+            max-width: 720px; margin: 0 auto; padding: 0 24px;
+        }
+        .card-inner {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px; padding: 32px;
+            position: relative; overflow: hidden;
+        }
+        .card-inner::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--fire), transparent);
+        }
+        .card-label {
+            font-size: 13px; font-weight: 600; color: var(--text-muted);
+            text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px;
+        }
+        textarea {
+            width: 100%; min-height: 220px; padding: 16px; font-size: 14px; line-height: 1.7;
+            font-family: 'Inter', sans-serif; color: var(--text); resize: vertical;
+            background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius);
+            outline: none; transition: border-color 0.2s;
+        }
+        textarea:focus { border-color: var(--fire); }
+        textarea::placeholder { color: var(--text-muted); }
+        .char-count {
+            text-align: right; font-size: 12px; color: var(--text-muted); margin-top: 8px;
+        }
+
+        .btn-roast {
+            width: 100%; padding: 16px; margin-top: 20px; font-size: 17px; font-weight: 700;
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--fire), var(--fire-dark));
+            color: #fff; border: none; border-radius: var(--radius); cursor: pointer;
+            transition: all 0.25s; position: relative; overflow: hidden;
+        }
+        .btn-roast:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(255,107,44,0.35);
+        }
+        .btn-roast:disabled { opacity: 0.6; cursor: not-allowed; }
+        .btn-roast .spinner {
+            display: inline-block; width: 18px; height: 18px;
+            border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff;
+            border-radius: 50%; animation: spin 0.6s linear infinite;
+            vertical-align: middle; margin-right: 8px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* --- Results --- */
+        #results {
+            max-width: 720px; margin: 40px auto 0; padding: 0 24px;
+            display: none;
+        }
+        #results.visible { display: block; animation: fadeUp 0.5s ease-out; }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .score-section {
+            text-align: center; margin-bottom: 32px; padding: 32px;
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 16px;
+        }
+        .score-ring {
+            position: relative; width: 140px; height: 140px; margin: 0 auto 16px;
+        }
+        .score-ring svg { transform: rotate(-90deg); }
+        .score-ring circle {
+            fill: none; stroke-width: 8; stroke-linecap: round;
+        }
+        .score-ring .bg { stroke: var(--border); }
+        .score-ring .fill {
+            stroke: var(--fire);
+            stroke-dasharray: 408;
+            stroke-dashoffset: 408;
+            transition: stroke-dashoffset 1.5s ease-out;
+        }
+        .score-ring .score-num {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 42px; font-weight: 900; color: var(--text);
+        }
+        .score-ring .score-label {
+            position: absolute; top: 65%; left: 50%; transform: translateX(-50%);
+            font-size: 11px; font-weight: 600; color: var(--text-muted);
+            text-transform: uppercase; letter-spacing: 0.1em;
+        }
+        .one-liner {
+            font-size: 18px; font-weight: 600; font-style: italic;
+            color: var(--fire-glow); margin-top: 8px;
+        }
+
+        .roast-list { list-style: none; margin-bottom: 32px; }
+        .roast-item {
+            padding: 16px 20px; margin-bottom: 8px;
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--radius); font-size: 15px; line-height: 1.6;
+            display: flex; gap: 12px; align-items: flex-start;
+            animation: fadeUp 0.4s ease-out both;
+        }
+        .roast-item:nth-child(1) { animation-delay: 0.1s; }
+        .roast-item:nth-child(2) { animation-delay: 0.2s; }
+        .roast-item:nth-child(3) { animation-delay: 0.3s; }
+        .roast-item:nth-child(4) { animation-delay: 0.4s; }
+        .roast-item:nth-child(5) { animation-delay: 0.5s; }
+        .roast-num {
+            flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%;
+            background: rgba(255,107,44,0.15); color: var(--fire);
+            font-size: 13px; font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        /* --- Upsell --- */
+        .upsell {
+            background: linear-gradient(135deg, rgba(255,107,44,0.06), rgba(255,107,44,0.02));
+            border: 1px solid rgba(255,107,44,0.2);
+            border-radius: 16px; padding: 40px 32px; text-align: center;
+            margin-top: 16px;
+        }
+        .upsell h2 {
+            font-size: 26px; font-weight: 800; margin-bottom: 8px;
+        }
+        .upsell .subtext {
+            color: var(--text-muted); font-size: 15px; margin-bottom: 24px;
+        }
+        .upsell-features {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+            max-width: 480px; margin: 0 auto 28px; text-align: left;
+        }
+        .upsell-feat {
+            display: flex; align-items: center; gap: 8px; font-size: 14px;
+        }
+        .upsell-feat .check {
+            color: var(--green); font-size: 16px; flex-shrink: 0;
+        }
+        .price-tag {
+            font-size: 48px; font-weight: 900; margin-bottom: 4px;
+        }
+        .price-tag .dollar { font-size: 28px; vertical-align: super; }
+        .price-compare {
+            font-size: 13px; color: var(--text-muted); margin-bottom: 20px;
+        }
+        .price-compare s { color: var(--red); }
+        .btn-upgrade {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 16px 40px; font-size: 17px; font-weight: 700;
+            font-family: 'Inter', sans-serif;
+            background: #fff; color: var(--bg); border: none;
+            border-radius: var(--radius); cursor: pointer;
+            transition: all 0.25s;
+        }
+        .btn-upgrade:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(255,255,255,0.15);
+        }
+        .btn-upgrade:disabled { opacity: 0.6; cursor: not-allowed; }
+        .guarantee {
+            font-size: 12px; color: var(--text-muted); margin-top: 12px;
+        }
+
+        /* --- Social proof --- */
+        .proof {
+            max-width: 720px; margin: 80px auto 0; padding: 0 24px; text-align: center;
+        }
+        .proof h3 {
+            font-size: 14px; font-weight: 600; color: var(--text-muted);
+            text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 24px;
+        }
+        .stats {
+            display: flex; justify-content: center; gap: 48px; flex-wrap: wrap;
+        }
+        .stat-num {
+            font-size: 36px; font-weight: 900;
+            background: linear-gradient(135deg, var(--fire), var(--fire-glow));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .stat-label { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+
+        /* --- FAQ --- */
+        .faq {
+            max-width: 720px; margin: 80px auto; padding: 0 24px;
+        }
+        .faq h2 {
+            font-size: 28px; font-weight: 800; text-align: center; margin-bottom: 32px;
+        }
+        .faq-item {
+            border-bottom: 1px solid var(--border); padding: 20px 0;
+        }
+        .faq-q {
+            font-weight: 600; font-size: 15px; cursor: pointer;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .faq-q::after { content: '+'; font-size: 20px; color: var(--text-muted); }
+        .faq-item.open .faq-q::after { content: '-'; }
+        .faq-a {
+            max-height: 0; overflow: hidden; transition: max-height 0.3s ease;
+            font-size: 14px; color: var(--text-muted); line-height: 1.7;
+        }
+        .faq-item.open .faq-a { max-height: 200px; padding-top: 12px; }
+
+        /* --- Footer --- */
+        footer {
+            text-align: center; padding: 48px 24px; font-size: 13px;
+            color: var(--text-muted); border-top: 1px solid var(--border);
+            margin-top: 80px;
+        }
+
+        /* --- Error toast --- */
+        .toast {
+            position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+            padding: 12px 24px; border-radius: 10px; font-size: 14px; font-weight: 500;
+            background: var(--red); color: #fff; z-index: 200;
+            opacity: 0; transition: opacity 0.3s;
+        }
+        .toast.visible { opacity: 1; }
+
+        /* --- Mobile --- */
+        @media (max-width: 640px) {
+            .hero { padding: 120px 16px 48px; }
+            .card-inner { padding: 20px; }
+            textarea { min-height: 180px; }
+            .upsell { padding: 28px 20px; }
+            .upsell-features { grid-template-columns: 1fr; }
+            .stats { gap: 32px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav>
+    <div class="logo">RoastMyResume</div>
+    <a href="#get-started" class="nav-cta">Try Free</a>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+    <div class="badge"><span class="badge-dot"></span> AI-powered resume review</div>
+    <h1>Your Resume<br><span>Probably Sucks.</span></h1>
+    <p class="subtitle">Find out why in 10 seconds. Our AI gives you brutally honest feedback that recruiters are too polite to say.</p>
+</section>
+
+<!-- Input Card -->
+<section class="card" id="get-started">
+    <div class="card-inner">
+        <div class="card-label">Paste your resume</div>
+        <textarea id="resumeInput" placeholder="Paste your resume text here...&#10;&#10;Tip: Copy everything from your resume — name, experience, skills, education. The more you paste, the better the roast."></textarea>
+        <div class="char-count"><span id="charCount">0</span> characters</div>
+        <button class="btn-roast" id="roastBtn" onclick="submitRoast()">
+            Roast My Resume — It's Free
+        </button>
+    </div>
+</section>
+
+<!-- Results -->
+<section id="results">
+    <div class="score-section">
+        <div class="score-ring">
+            <svg width="140" height="140" viewBox="0 0 140 140">
+                <circle class="bg" cx="70" cy="70" r="65"/>
+                <circle class="fill" id="scoreCircle" cx="70" cy="70" r="65"/>
+            </svg>
+            <div class="score-num" id="scoreNum">0</div>
+            <div class="score-label">/ 100</div>
+        </div>
+        <div class="one-liner" id="oneLiner"></div>
+    </div>
+
+    <ul class="roast-list" id="roastList"></ul>
+
+    <div class="upsell" id="upsell">
+        <h2>Want the fix, not just the roast?</h2>
+        <p class="subtext">Get a complete professional rewrite powered by advanced AI</p>
+        <div class="upsell-features">
+            <div class="upsell-feat"><span class="check">&#10003;</span> ATS compatibility deep-dive</div>
+            <div class="upsell-feat"><span class="check">&#10003;</span> 5 bullet points rewritten</div>
+            <div class="upsell-feat"><span class="check">&#10003;</span> Industry-specific tips</div>
+            <div class="upsell-feat"><span class="check">&#10003;</span> Quick wins you can apply now</div>
+        </div>
+        <div class="price-tag"><span class="dollar">$</span>4<sup>.99</sup></div>
+        <div class="price-compare">vs <s>$50+</s> for a human resume writer</div>
+        <button class="btn-upgrade" id="upgradeBtn" onclick="checkout()">Get Full Rewrite</button>
+        <div class="guarantee">One-time payment. Instant delivery. No subscription.</div>
+    </div>
+</section>
+
+<!-- Social Proof -->
+<section class="proof" id="proof">
+    <h3>The numbers</h3>
+    <div class="stats">
+        <div><div class="stat-num" id="statRoasts">0</div><div class="stat-label">Resumes roasted</div></div>
+        <div><div class="stat-num">10s</div><div class="stat-label">Average review time</div></div>
+        <div><div class="stat-num">$4.99</div><div class="stat-label">For a full rewrite</div></div>
+    </div>
+</section>
+
+<!-- FAQ -->
+<section class="faq">
+    <h2>Questions</h2>
+    <div class="faq-item" onclick="this.classList.toggle('open')">
+        <div class="faq-q">Is the free roast actually useful?</div>
+        <div class="faq-a">Yes. You get a real ATS score and 5 specific issues with YOUR resume. It's not generic fluff — the AI reads and analyzes your actual content.</div>
+    </div>
+    <div class="faq-item" onclick="this.classList.toggle('open')">
+        <div class="faq-q">What do I get with the paid version?</div>
+        <div class="faq-a">A full professional review: detailed ATS analysis, 5 of your weakest bullet points rewritten using the STAR method, industry-specific advice, and quick wins you can implement in 5 minutes.</div>
+    </div>
+    <div class="faq-item" onclick="this.classList.toggle('open')">
+        <div class="faq-q">Is my resume data safe?</div>
+        <div class="faq-a">Your resume text is processed by AI and temporarily cached for your session only. We don't store, sell, or share your data. It's automatically deleted within 2 hours.</div>
+    </div>
+    <div class="faq-item" onclick="this.classList.toggle('open')">
+        <div class="faq-q">Can I get a refund?</div>
+        <div class="faq-a">If you're not satisfied with your full review, email us and we'll refund you — no questions asked.</div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer>
+    &copy; 2026 RoastMyResume. Built with questionable life choices and good AI.
+</footer>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+    const STRIPE_KEY = '{{ stripe_key }}';
+    let currentResumeId = null;
+
+    // Character counter
+    const ta = document.getElementById('resumeInput');
+    const cc = document.getElementById('charCount');
+    ta.addEventListener('input', () => { cc.textContent = ta.value.length; });
+
+    // Animated counter for social proof
+    let roastCount = parseInt(localStorage.getItem('rmr_count') || '0');
+    document.getElementById('statRoasts').textContent = roastCount.toLocaleString();
+
+    function showToast(msg, duration = 4000) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.classList.add('visible');
+        setTimeout(() => t.classList.remove('visible'), duration);
+    }
+
+    async function submitRoast() {
+        const resume = ta.value.trim();
+        if (resume.length < 80) {
+            showToast('Paste at least a few lines of your resume.');
+            return;
+        }
+
+        const btn = document.getElementById('roastBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner"></span>Roasting...';
+
+        try {
+            const res = await fetch('/api/roast', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ resume })
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                showToast(data.error || 'Something went wrong.');
+                return;
+            }
+
+            currentResumeId = data.resume_id;
+            renderResults(data);
+
+            // Increment counter
+            roastCount++;
+            localStorage.setItem('rmr_count', roastCount.toString());
+            document.getElementById('statRoasts').textContent = roastCount.toLocaleString();
+
+        } catch (e) {
+            showToast('Network error. Please try again.');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = 'Roast My Resume — It\'s Free';
+        }
+    }
+
+    function renderResults(data) {
+        const results = document.getElementById('results');
+        results.classList.add('visible');
+
+        // Animate score
+        const score = data.score || 0;
+        const circle = document.getElementById('scoreCircle');
+        const circumference = 2 * Math.PI * 65; // ~408
+        const offset = circumference - (score / 100) * circumference;
+
+        // Color based on score
+        let color = '#ef4444'; // red
+        if (score >= 70) color = '#22c55e'; // green
+        else if (score >= 45) color = '#eab308'; // yellow
+
+        circle.style.stroke = color;
+        setTimeout(() => { circle.style.strokeDashoffset = offset; }, 100);
+
+        // Animate number
+        animateNumber('scoreNum', 0, score, 1200);
+
+        // One-liner
+        document.getElementById('oneLiner').textContent = `"${data.one_liner || ''}"`;
+
+        // Roast bullets
+        const list = document.getElementById('roastList');
+        list.innerHTML = '';
+        (data.roasts || []).forEach((roast, i) => {
+            const li = document.createElement('li');
+            li.className = 'roast-item';
+            li.innerHTML = `<span class="roast-num">${i + 1}</span><span>${escapeHtml(roast)}</span>`;
+            list.appendChild(li);
+        });
+
+        // Scroll to results
+        setTimeout(() => {
+            results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 200);
+    }
+
+    function animateNumber(id, start, end, duration) {
+        const el = document.getElementById(id);
+        const range = end - start;
+        const startTime = performance.now();
+        function step(now) {
+            const elapsed = now - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+            el.textContent = Math.round(start + range * eased);
+            if (progress < 1) requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+    }
+
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
+    async function checkout() {
+        const btn = document.getElementById('upgradeBtn');
+        btn.disabled = true;
+        btn.textContent = 'Redirecting to payment...';
+
+        try {
+            const res = await fetch('/api/checkout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    resume_id: currentResumeId,
+                    resume: ta.value.trim()
+                })
+            });
+
+            const data = await res.json();
+            if (data.url) {
+                window.location.href = data.url;
+            } else {
+                showToast(data.error || 'Payment setup failed.');
+            }
+        } catch (e) {
+            showToast('Network error. Please try again.');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Get Full Rewrite';
+        }
+    }
+</script>
+</body>
+</html>

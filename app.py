@@ -1,0 +1,301 @@
+import os
+import uuid
+import time
+import json
+import hashlib
+from datetime import datetime, timedelta
+from dotenv import load_dotenv
+load_dotenv()
+from flask import Flask, render_template, request, jsonify, redirect, url_for
+import anthropic
+import stripe
+
+app = Flask(__name__)
+app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-change-me')
+
+# --- Config ---
+ANTHROPIC_API_KEY = os.environ.get('ANTHROPIC_API_KEY')
+STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY')
+STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY')
+STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET')
+BASE_URL = os.environ.get('BASE_URL', 'http://localhost:5000')
+PRICE_CENTS = 499  # $4.99
+
+stripe.api_key = STRIPE_SECRET_KEY
+ai = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+
+# --- In-memory stores (fine for single-instance deploy) ---
+resume_store = {}       # uuid -> {resume, created_at}
+rate_limits = {}        # ip_hash -> {count, window_start}
+paid_sessions = set()   # session_ids that have been used
+
+FREE_ROASTS_PER_DAY = 5
+RESUME_TTL_HOURS = 2
+
+
+# --- Helpers ---
+
+def _hash_ip(ip):
+    return hashlib.sha256(ip.encode()).hexdigest()[:16]
+
+
+def _check_rate_limit(ip):
+    key = _hash_ip(ip)
+    now = time.time()
+    if key in rate_limits:
+        rl = rate_limits[key]
+        if now - rl['window_start'] > 86400:
+            rate_limits[key] = {'count': 1, 'window_start': now}
+            return True
+        if rl['count'] >= FREE_ROASTS_PER_DAY:
+            return False
+        rl['count'] += 1
+        return True
+    rate_limits[key] = {'count': 1, 'window_start': now}
+    return True
+
+
+def _cleanup_old_resumes():
+    cutoff = time.time() - (RESUME_TTL_HOURS * 3600)
+    expired = [k for k, v in resume_store.items() if v['created_at'] < cutoff]
+    for k in expired:
+        del resume_store[k]
+
+
+# --- Routes ---
+
+@app.route('/')
+def index():
+    return render_template('index.html', stripe_key=STRIPE_PUBLISHABLE_KEY)
+
+
+@app.route('/api/roast', methods=['POST'])
+def free_roast():
+    ip = request.headers.get('X-Forwarded-For', request.remote_addr) or '0.0.0.0'
+    if not _check_rate_limit(ip):
+        return jsonify({'error': 'Daily limit reached. Upgrade to get unlimited reviews.'}), 429
+
+    data = request.get_json(silent=True) or {}
+    resume_text = (data.get('resume') or '').strip()
+
+    if len(resume_text) < 80:
+        return jsonify({'error': 'Paste at least a few lines of your resume.'}), 400
+    if len(resume_text) > 15000:
+        return jsonify({'error': 'Resume is too long. Paste the text content only.'}), 400
+
+    try:
+        response = ai.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=600,
+            messages=[{
+                "role": "user",
+                "content": f"""You are "The Resume Roaster" — brutally honest, a bit funny, but genuinely helpful.
+
+Analyze this resume and return EXACTLY this JSON structure, nothing else:
+{{
+  "score": <number 0-100>,
+  "roasts": [
+    "<bullet 1>",
+    "<bullet 2>",
+    "<bullet 3>",
+    "<bullet 4>",
+    "<bullet 5>"
+  ],
+  "one_liner": "<a single devastating but motivating summary sentence>"
+}}
+
+Rules:
+- Score honestly (most resumes are 30-60)
+- Each roast bullet should be 1-2 sentences, specific to THIS resume
+- Be funny but not mean — the goal is to help
+- Point out real issues: vague bullets, missing metrics, bad formatting clues, buzzword abuse, etc.
+- The one_liner should make them laugh AND want to fix their resume
+
+Resume:
+{resume_text[:5000]}"""
+            }]
+        )
+
+        raw = response.content[0].text.strip()
+        if raw.startswith('```'):
+            raw = raw.split('\n', 1)[1].rsplit('```', 1)[0].strip()
+        result = json.loads(raw)
+
+        # Store resume for potential paid upgrade
+        resume_id = str(uuid.uuid4())
+        resume_store[resume_id] = {
+            'resume': resume_text,
+            'created_at': time.time()
+        }
+        _cleanup_old_resumes()
+
+        result['resume_id'] = resume_id
+        return jsonify(result)
+
+    except json.JSONDecodeError:
+        return jsonify({
+            'score': 42,
+            'roasts': [
+                "Your resume confused our AI so badly it couldn't even format a response. That's... actually impressive.",
+                "If a robot can't parse your resume, what chance does a human recruiter have?",
+                "Seriously though — try pasting just the text content, not the formatting.",
+                "Pro tip: if you copied from a PDF, the formatting might be garbled.",
+                "Give it another shot with clean text and we'll roast you properly."
+            ],
+            'one_liner': "Your resume is so confusing it broke an AI. Let's fix that.",
+            'resume_id': None
+        })
+    except Exception as e:
+        return jsonify({'error': 'Something went wrong. Try again in a moment.'}), 500
+
+
+@app.route('/api/checkout', methods=['POST'])
+def create_checkout():
+    data = request.get_json(silent=True) or {}
+    resume_id = data.get('resume_id')
+    resume_text = (data.get('resume') or '').strip()
+
+    # Store resume if not already stored
+    if not resume_id or resume_id not in resume_store:
+        if len(resume_text) < 80:
+            return jsonify({'error': 'Resume text required'}), 400
+        resume_id = str(uuid.uuid4())
+        resume_store[resume_id] = {
+            'resume': resume_text,
+            'created_at': time.time()
+        }
+
+    try:
+        session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[{
+                'price_data': {
+                    'currency': 'usd',
+                    'product_data': {
+                        'name': 'Full Resume Rewrite & ATS Score',
+                        'description': 'Detailed review, rewritten bullet points, ATS compatibility score, and personalized career tips.',
+                    },
+                    'unit_amount': PRICE_CENTS,
+                },
+                'quantity': 1,
+            }],
+            mode='payment',
+            success_url=BASE_URL + '/success?session_id={CHECKOUT_SESSION_ID}&rid=' + resume_id,
+            cancel_url=BASE_URL + '/#get-started',
+            client_reference_id=resume_id,
+        )
+        return jsonify({'url': session.url})
+    except Exception as e:
+        return jsonify({'error': 'Payment setup failed. Please try again.'}), 500
+
+
+@app.route('/success')
+def success():
+    session_id = request.args.get('session_id')
+    resume_id = request.args.get('rid')
+
+    if not session_id or not resume_id:
+        return redirect('/')
+
+    return render_template('success.html',
+                           session_id=session_id,
+                           resume_id=resume_id,
+                           stripe_key=STRIPE_PUBLISHABLE_KEY)
+
+
+@app.route('/api/full-review', methods=['POST'])
+def full_review():
+    data = request.get_json(silent=True) or {}
+    session_id = data.get('session_id')
+    resume_id = data.get('resume_id')
+
+    if not session_id or not resume_id:
+        return jsonify({'error': 'Missing parameters'}), 400
+
+    # Verify payment
+    try:
+        session = stripe.checkout.Session.retrieve(session_id)
+        if session.payment_status != 'paid':
+            return jsonify({'error': 'Payment not completed'}), 402
+    except Exception:
+        return jsonify({'error': 'Could not verify payment'}), 400
+
+    # Prevent replay (one review per payment)
+    if session_id in paid_sessions:
+        return jsonify({'error': 'This review has already been generated. Check your email or refresh the page.'}), 409
+    paid_sessions.add(session_id)
+
+    # Get resume
+    cached = resume_store.get(resume_id)
+    if not cached:
+        return jsonify({'error': 'Resume expired. Please start over.'}), 410
+
+    resume_text = cached['resume']
+
+    try:
+        response = ai.messages.create(
+            model="claude-sonnet-4-5-20250929",
+            max_tokens=3000,
+            messages=[{
+                "role": "user",
+                "content": f"""You are an expert resume writer, career coach, and ATS (Applicant Tracking System) specialist with 15 years of experience.
+
+Provide a comprehensive, premium resume review. Use this exact markdown structure:
+
+## ATS Compatibility Score: XX/100
+
+[2-3 sentences explaining the score — what's working and what's not for automated screening systems]
+
+## Top 5 Issues Holding You Back
+
+1. **[Issue]** — [Specific explanation with example from their resume]
+2. **[Issue]** — [Specific explanation]
+3. **[Issue]** — [Specific explanation]
+4. **[Issue]** — [Specific explanation]
+5. **[Issue]** — [Specific explanation]
+
+## Rewritten Bullet Points
+
+Take their 5 weakest bullet points and rewrite them using the STAR method with quantified impact. Show before → after for each:
+
+**Before:** [their original bullet]
+**After:** [your improved version with metrics]
+
+(Repeat 5 times)
+
+## Quick Wins (5-Minute Fixes)
+
+Three specific changes they can make RIGHT NOW:
+1. [Quick fix]
+2. [Quick fix]
+3. [Quick fix]
+
+## Industry-Specific Tips
+
+Based on their apparent industry/role, give 2 targeted recommendations that most generic advice misses.
+
+---
+
+Be specific to THIS resume. Reference their actual content. Be direct and actionable — they paid for this, give them real value.
+
+Resume:
+{resume_text}"""
+            }]
+        )
+
+        return jsonify({'review': response.content[0].text})
+
+    except Exception as e:
+        paid_sessions.discard(session_id)  # Allow retry on failure
+        return jsonify({'error': 'Review generation failed. Please refresh to try again.'}), 500
+
+
+# --- Health check ---
+@app.route('/health')
+def health():
+    return jsonify({'status': 'ok', 'timestamp': datetime.utcnow().isoformat()})
+
+
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=os.environ.get('FLASK_ENV') == 'development')
