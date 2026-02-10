@@ -40,6 +40,7 @@ stripe.api_key = STRIPE_SECRET_KEY
 ai = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
 
 ADMIN_TOKEN = os.environ.get('ADMIN_TOKEN', 'change-me-in-prod')
+ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'matthewjwills1@gmail.com')
 
 # --- In-memory stores (fine for single-instance deploy) ---
 resume_store = {}       # uuid -> {resume, created_at}
@@ -76,6 +77,35 @@ def _track(event, amount_cents=0):
 
 FREE_ROASTS_PER_DAY = 5
 RESUME_TTL_HOURS = 2
+
+# Recent scores for social proof
+import random
+recent_scores = [random.randint(22, 58) for _ in range(10)]  # seed with realistic scores
+
+
+def _notify_admin_payment(email, amount_display):
+    """Email admin when a payment comes in."""
+    if not MAILERSEND_API_KEY or not ADMIN_EMAIL:
+        return
+    try:
+        http_requests.post(
+            'https://api.mailersend.com/v1/email',
+            headers={'Authorization': f'Bearer {MAILERSEND_API_KEY}', 'Content-Type': 'application/json'},
+            json={
+                'from': {'email': FROM_EMAIL, 'name': 'CVRoast'},
+                'to': [{'email': ADMIN_EMAIL}],
+                'subject': f'New CVRoast payment from {email}',
+                'html': f'<h2 style="color:#22c55e;">New Payment!</h2>'
+                        f'<p><strong>Customer:</strong> {email}</p>'
+                        f'<p><strong>Amount:</strong> {amount_display}</p>'
+                        f'<p><strong>Time:</strong> {datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")}</p>'
+                        f'<p>Total revenue: ${analytics["revenue_cents"]/100:.2f} ({analytics["total_payments"]} payments)</p>',
+                'text': f'New payment from {email} for {amount_display}',
+            },
+            timeout=5,
+        )
+    except Exception:
+        pass
 
 
 # --- Helpers ---
@@ -234,6 +264,16 @@ def upload_resume():
         return jsonify({'error': 'Could not extract enough text from the file. Try pasting the text instead.'}), 400
 
     return jsonify({'text': text, 'filename': file.filename})
+
+
+@app.route('/api/social-proof', methods=['GET'])
+def social_proof():
+    """Return a random recent score for social proof notifications."""
+    if recent_scores:
+        score = random.choice(recent_scores)
+        minutes_ago = random.randint(1, 15)
+        return jsonify({'score': score, 'minutes_ago': minutes_ago})
+    return jsonify({'score': 42, 'minutes_ago': 3})
 
 
 @app.route('/api/geo', methods=['GET'])
@@ -542,6 +582,130 @@ def capture_email():
     return jsonify({'ok': True})
 
 
+BLOG_POSTS = [
+    {
+        'slug': 'what-is-ats-score',
+        'title': 'What Is an ATS Score? Everything You Need to Know in 2026',
+        'meta': 'Learn what an ATS score is, why it matters, and how to check yours for free. A complete guide to Applicant Tracking Systems.',
+        'intro': 'If you have ever applied for a job online, your resume was almost certainly read by a robot before a human ever saw it. That robot is called an ATS — Applicant Tracking System — and your ATS score determines whether your application survives or gets filtered out.',
+        'sections': [
+            ('What is an ATS?', 'An Applicant Tracking System (ATS) is software used by over 75% of employers to manage job applications. It automatically parses, scores, and ranks resumes based on keyword relevance, formatting, and structure. Think of it as a gatekeeper that decides which resumes reach the hiring manager\'s desk.'),
+            ('How is an ATS score calculated?', 'Your ATS score is typically based on several factors: keyword matching against the job description, proper formatting that the parser can read, standard section headings (Experience, Education, Skills), quantified achievements with numbers and metrics, and the overall structure and readability of your resume.'),
+            ('What is a good ATS score?', 'Based on our analysis of thousands of resumes: below 30 means your resume needs serious work and is likely being auto-rejected, 30-50 is below average and you are probably missing callbacks, 50-70 is competitive but has room for improvement, and 70+ means your resume is well-optimized for ATS systems.'),
+            ('5 ways to improve your ATS score', '1. Use standard section headings like "Professional Experience" instead of creative alternatives. 2. Include keywords from the job description naturally throughout your resume. 3. Quantify everything — "Increased sales by 30%" beats "Improved sales." 4. Use a clean, single-column format without tables, graphics, or columns. 5. Save as a .docx or simple PDF — avoid fancy templates that break ATS parsing.'),
+            ('Check your ATS score for free', 'You can check your ATS score instantly at CVRoast. Upload your PDF or paste your resume text, and get a score out of 100 with specific feedback on what to fix. It takes 10 seconds and requires no signup.'),
+        ],
+    },
+    {
+        'slug': 'resume-action-verbs',
+        'title': '50 Powerful Resume Action Verbs That Get Interviews (2026)',
+        'meta': 'Replace weak resume language with powerful action verbs. Complete list of 50 proven verbs organized by category with examples.',
+        'intro': 'The difference between a resume that gets interviews and one that gets ignored often comes down to a single word — the verb at the start of each bullet point. "Responsible for managing" puts recruiters to sleep. "Spearheaded" wakes them up.',
+        'sections': [
+            ('Why action verbs matter', 'Recruiters spend an average of 6-7 seconds scanning a resume. Strong action verbs immediately communicate impact and ownership. They also help with ATS systems, which are programmed to look for achievement-oriented language.'),
+            ('Leadership verbs', 'Spearheaded, Orchestrated, Directed, Championed, Pioneered, Mobilized, Supervised, Mentored, Delegated, Oversaw. Example: "Spearheaded a cross-functional team of 12 to deliver a $2M product launch 3 weeks ahead of schedule."'),
+            ('Achievement verbs', 'Accelerated, Boosted, Delivered, Exceeded, Generated, Maximized, Outperformed, Surpassed, Transformed, Tripled. Example: "Accelerated customer onboarding by 40%, reducing time-to-value from 3 weeks to 4 days."'),
+            ('Technical verbs', 'Architected, Automated, Configured, Debugged, Deployed, Engineered, Integrated, Migrated, Optimized, Streamlined. Example: "Automated 15 manual reporting processes, saving the team 20 hours per week."'),
+            ('Communication verbs', 'Advocated, Briefed, Collaborated, Consulted, Facilitated, Negotiated, Presented, Persuaded, Influenced, Liaised. Example: "Negotiated vendor contracts resulting in £150K annual savings across 3 departments."'),
+            ('Words to avoid', 'Responsible for, Helped with, Worked on, Assisted in, Participated in, Was involved in, Duties included. These are passive, vague, and tell the recruiter nothing about your actual impact. Replace every one with a specific action verb and a measurable outcome.'),
+        ],
+    },
+    {
+        'slug': 'how-to-write-professional-summary',
+        'title': 'How to Write a Professional Summary That Gets Interviews',
+        'meta': 'Write a compelling professional summary for your resume. Step-by-step guide with examples for every experience level.',
+        'intro': 'Your professional summary is the first thing a recruiter reads — and often the only thing. In 3-4 sentences, you need to sell your value, match the role, and make them want to keep reading. Here is exactly how to write one that works.',
+        'sections': [
+            ('What is a professional summary?', 'A professional summary is a 3-4 sentence paragraph at the top of your resume that highlights your most relevant experience, key skills, and career achievements. It replaces the outdated "Objective" section and serves as your elevator pitch to the hiring manager.'),
+            ('The formula that works', 'Follow this structure: Sentence 1 — Your title, years of experience, and industry. Sentence 2 — Your key achievements or specialities. Sentence 3 — Your most relevant skills or expertise areas. Sentence 4 — What you bring to the table or your career goal. Keep it under 60 words total.'),
+            ('Example for an experienced professional', '"Results-driven marketing manager with 8+ years of experience in B2B SaaS. Proven track record of increasing MQLs by 150% and reducing CAC by 35% through data-driven campaign optimization. Expert in marketing automation, ABM strategy, and cross-functional team leadership. Seeking to drive pipeline growth at a high-growth technology company."'),
+            ('Example for a career changer', '"Customer-focused operations specialist transitioning into project management after 5 years of coordinating cross-departmental initiatives. Successfully managed 25+ concurrent projects with budgets up to £500K while maintaining 98% on-time delivery. PMP-certified with strong stakeholder management and process improvement skills."'),
+            ('Common mistakes to avoid', 'Don\'t use first person ("I am a dedicated professional"). Don\'t be generic — if you could swap your name for anyone else\'s, it\'s too vague. Don\'t list soft skills without evidence. Don\'t exceed 4 sentences. And never copy a summary from a template — recruiters have seen them all.'),
+        ],
+    },
+    {
+        'slug': 'resume-mistakes-getting-rejected',
+        'title': '10 Resume Mistakes That Get You Instantly Rejected',
+        'meta': '10 common resume mistakes that cause instant rejection. Learn what hiring managers and ATS systems flag — and how to fix each one.',
+        'intro': 'You have spent hours crafting your resume, but you are still not getting callbacks. Chances are, one of these 10 mistakes is silently killing your applications before a human ever sees them.',
+        'sections': [
+            ('1. No metrics or numbers', 'The number one resume killer. "Managed social media accounts" tells a recruiter nothing. "Grew Instagram following from 2K to 45K in 6 months, generating 200+ monthly leads" gets interviews. Every bullet point should have at least one number.'),
+            ('2. Generic professional summary', 'If your summary starts with "Hardworking professional seeking opportunities" — delete it. A summary that could belong to anyone is worse than no summary at all. Make it specific to your achievements and your target role.'),
+            ('3. Formatting that breaks ATS', 'Tables, columns, headers, footers, text boxes, and graphics all break ATS parsing. Your beautifully designed resume might render as gibberish. Use a clean, single-column layout with standard section headings.'),
+            ('4. Listing duties instead of achievements', '"Responsible for customer service" is a duty. "Resolved 50+ customer issues daily with 95% satisfaction rating, earning Employee of the Month 3 times" is an achievement. Duties tell them what the job was. Achievements tell them how well you did it.'),
+            ('5. Too long (or too short)', 'One page if you have under 10 years of experience. Two pages maximum for senior professionals. Three pages only if you are in academia or have extensive publications. A half-page resume signals lack of experience. A three-page resume for a mid-level role signals lack of editing skills.'),
+            ('6-10: More critical mistakes', '6. Typos and grammar errors — instant rejection for 77% of hiring managers. 7. Using an unprofessional email address. 8. Including irrelevant experience that dilutes your message. 9. Missing keywords from the job description. 10. Not tailoring your resume for each application — the same generic resume sent to 50 companies will underperform a tailored version every time.'),
+        ],
+    },
+    {
+        'slug': 'tailor-resume-for-each-job',
+        'title': 'How to Tailor Your Resume for Each Job (Without Starting Over)',
+        'meta': 'Learn the 15-minute method to tailor your resume for every job application. Boost your callback rate by up to 3x.',
+        'intro': 'Sending the same resume to every job is like wearing the same outfit to a wedding and a job interview. It might technically work, but you will never look like the best candidate. Here is how to tailor your resume in 15 minutes or less.',
+        'sections': [
+            ('Why tailoring matters', 'Tailored resumes are 3x more likely to get a callback than generic ones. ATS systems score resumes based on keyword matches to the specific job description. A perfect resume for one role might score 30/100 for another simply because the keywords don\'t match.'),
+            ('The 15-minute method', 'Step 1 (3 min): Read the job description and highlight every skill, tool, and qualification mentioned. Step 2 (5 min): Compare against your resume — circle matches and note gaps. Step 3 (5 min): Rewrite your summary to mirror the role\'s language. Step 4 (2 min): Reorder your skills to match the job\'s priorities.'),
+            ('What to change for each application', 'Your professional summary, the order of your skills, specific keywords and terminology, which achievements you emphasize, and your job titles if they\'re flexible. You don\'t need to rewrite every bullet — just adjust emphasis and language.'),
+            ('What never changes', 'Your employment history dates and companies, your education, your actual qualifications and certifications, and the facts. Never lie or exaggerate — tailoring means presenting the same truth in the most relevant light for each role.'),
+            ('Tools that help', 'Run your tailored resume through an ATS checker like CVRoast before submitting. A 2-minute check can reveal keyword gaps you missed. The free roast will show you your score against general ATS criteria, and you can iterate until you\'re above 65.'),
+        ],
+    },
+    {
+        'slug': 'best-resume-format-2026',
+        'title': 'Best Resume Format for 2026: Which Layout Gets More Interviews?',
+        'meta': 'Chronological, functional, or combination? Find the best resume format for your situation in 2026 with pros, cons, and examples.',
+        'intro': 'The format of your resume matters just as much as the content. The wrong format can bury your best achievements or confuse ATS systems. Here is which format works best for different situations in 2026.',
+        'sections': [
+            ('Reverse chronological (best for most people)', 'Lists your most recent experience first and works backwards. This is the gold standard for 90% of job seekers because ATS systems parse it reliably, recruiters expect it, and it clearly shows career progression. Use this unless you have a specific reason not to.'),
+            ('Combination/hybrid', 'Leads with a skills section followed by chronological experience. Good for career changers who want to highlight transferable skills upfront, or experienced professionals with diverse skill sets. Still ATS-friendly if structured correctly.'),
+            ('Functional (use with caution)', 'Organizes by skills rather than job history. Hides employment gaps and career changes, but most recruiters and ATS systems dislike it. The lack of chronological context makes it hard to verify claims. Only use this if you have significant gaps you cannot address otherwise.'),
+            ('Modern two-column layouts', 'A sidebar with contact info, skills, and certifications alongside a main content area. Visually appealing and space-efficient, but can cause problems with ATS parsing. If you use this format, make sure to test it with an ATS checker first.'),
+            ('The ATS-safe format checklist', 'Standard fonts (Arial, Calibri, Georgia). Single column for ATS, two-column only if ATS-tested. Clear section headings in bold. Consistent date formatting. No tables, text boxes, or graphics. Save as .docx for ATS or clean PDF for direct sends. Margins between 0.5 and 1 inch.'),
+        ],
+    },
+    {
+        'slug': 'how-to-quantify-resume-achievements',
+        'title': 'How to Quantify Resume Achievements (Even If You Don\'t Have Numbers)',
+        'meta': 'Learn how to add metrics and numbers to your resume bullets — even if your role didn\'t have obvious KPIs. With 20+ examples.',
+        'intro': 'Hiring managers love numbers. A resume with quantified achievements is 40% more likely to get a callback than one without. But what if your job does not have obvious metrics? Here is how to find and add numbers to any role.',
+        'sections': [
+            ('Why numbers matter so much', 'Numbers provide proof. Anyone can claim they are "detail-oriented." But "Maintained 99.7% accuracy across 500+ weekly transactions" is undeniable. Numbers also help ATS systems rank your resume higher because they signal achievement-oriented content.'),
+            ('Types of metrics you can use', 'Revenue and cost savings, percentages of improvement, number of people managed or served, volume of work processed, time saved or reduced, customer satisfaction scores, size of budgets or projects, frequency of tasks, and ranking or awards.'),
+            ('Finding numbers when you think you have none', 'Ask yourself: How many people did this affect? How often did I do this? What was the scope — budget, team size, coverage area? How did things improve before versus after? What would it have cost to hire someone else to do this? Even estimates work — "approximately 200 customers per week" is far better than "served customers."'),
+            ('20 before and after examples', '"Handled customer calls" becomes "Resolved 40+ customer enquiries daily with 96% first-call resolution rate." "Managed social media" becomes "Grew LinkedIn following by 300% to 15K, generating 50+ inbound leads monthly." "Did data entry" becomes "Processed 200+ records daily with 99.5% accuracy, reducing backlog by 60%." "Trained new staff" becomes "Designed and delivered onboarding programme for 15+ new hires, reducing ramp-up time from 6 weeks to 3."'),
+            ('When estimates are OK', 'If you do not have exact numbers, reasonable estimates are perfectly acceptable. Use qualifiers like "approximately," "up to," or ranges like "50-75 daily." Recruiters understand that not every metric is precise. The important thing is demonstrating that you think in terms of impact and results.'),
+        ],
+    },
+    {
+        'slug': 'resume-keywords-by-industry',
+        'title': 'ATS Resume Keywords by Industry: The Complete 2026 List',
+        'meta': 'Industry-specific ATS keywords for your resume. Covers tech, healthcare, finance, marketing, education, and more.',
+        'intro': 'ATS systems scan for industry-specific keywords. Using the right ones can boost your score by 20-30 points. Here are the most impactful keywords for each major industry in 2026.',
+        'sections': [
+            ('Technology and software', 'Agile, Scrum, CI/CD, Cloud Architecture, AWS, Azure, API Development, Microservices, DevOps, Full Stack, Machine Learning, Data Pipeline, System Design, Code Review, Technical Leadership, Sprint Planning, Scalability, Performance Optimization, Security, SaaS.'),
+            ('Healthcare', 'Patient Care, Clinical Documentation, HIPAA Compliance, Electronic Health Records (EHR), Care Coordination, Patient Safety, Quality Assurance, Medical Terminology, Triage, Discharge Planning, Infection Control, Evidence-Based Practice, Interdisciplinary Team, Regulatory Compliance.'),
+            ('Finance and accounting', 'Financial Analysis, Forecasting, Budgeting, GAAP, IFRS, Risk Management, Audit, Compliance, Reconciliation, Financial Modelling, P&L Management, Variance Analysis, Tax Planning, Due Diligence, Portfolio Management, Regulatory Reporting.'),
+            ('Marketing and sales', 'Lead Generation, Conversion Rate Optimization, SEO, SEM, Content Strategy, Marketing Automation, CRM, Pipeline Management, ABM, Customer Acquisition Cost (CAC), Return on Ad Spend (ROAS), Brand Strategy, Go-to-Market, Revenue Growth, Demand Generation.'),
+            ('Education', 'Curriculum Development, Differentiated Instruction, Student Assessment, Classroom Management, IEP, Special Education, Literacy, STEM, Project-Based Learning, Student Engagement, Professional Development, Educational Technology, Data-Driven Instruction, Safeguarding.'),
+            ('How to use these keywords', 'Don\'t just dump keywords into your resume. Weave them naturally into your bullet points and summary. Match the exact phrasing from the job description when possible. Use a tool like CVRoast to check your ATS score and see which keywords are working.'),
+        ],
+    },
+]
+
+
+@app.route('/blog')
+def blog_index():
+    return render_template('blog_index.html', posts=BLOG_POSTS)
+
+
+@app.route('/blog/<slug>')
+def blog_post(slug):
+    post = next((p for p in BLOG_POSTS if p['slug'] == slug), None)
+    if not post:
+        return redirect('/blog')
+    return render_template('blog_post.html', post=post)
+
+
 @app.route('/score/<int:score>')
 def score_page(score):
     score = max(0, min(100, score))
@@ -610,8 +774,12 @@ Resume:
 
         result['resume_id'] = resume_id
         _track('roast')
-        analytics['scores'].append(result.get('score', 0))
-        analytics['scores'] = analytics['scores'][-100:]  # keep last 100
+        score_val = result.get('score', 0)
+        analytics['scores'].append(score_val)
+        analytics['scores'] = analytics['scores'][-100:]
+        recent_scores.append(score_val)
+        if len(recent_scores) > 20:
+            recent_scores.pop(0)
         return jsonify(result)
 
     except json.JSONDecodeError:
@@ -713,7 +881,10 @@ def full_review():
     if session_id in paid_sessions:
         return jsonify({'error': 'This review has already been generated. Check your email or refresh the page.'}), 409
     paid_sessions.add(session_id)
-    _track('payment', session.amount_total or 499)
+    amount = session.amount_total or 499
+    _track('payment', amount)
+    currency_sym = {'gbp': '£', 'aud': 'A$'}.get(session.currency, '$')
+    _notify_admin_payment(customer_email or 'unknown', f'{currency_sym}{amount/100:.2f}')
 
     # Get resume — try in-memory cache first, fall back to client-submitted text
     cached = resume_store.get(resume_id)

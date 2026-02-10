@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume & CV Tips Blog — CVRoast</title>
+    <meta name="description" content="Expert resume and CV advice: ATS optimization, action verbs, formatting tips, and industry keywords. Free guides to help you get more interviews.">
+    <meta property="og:title" content="Resume & CV Tips Blog — CVRoast">
+    <meta property="og:description" content="Expert resume and CV advice to help you get more interviews. Free guides on ATS scores, keywords, formatting, and more.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://cvroast.com/blog">
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+    <link rel="canonical" href="https://cvroast.com/blog">
+    <link rel="alternate" hreflang="en-gb" href="https://cvroast.com/blog">
+    <link rel="alternate" hreflang="en-us" href="https://cvroast.com/blog">
+    <link rel="alternate" hreflang="en-au" href="https://cvroast.com/blog">
+    <link rel="alternate" hreflang="x-default" href="https://cvroast.com/blog">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg: #08080a; --surface: #111114; --surface-2: #19191e;
+            --border: #252530; --text: #ededf0; --text-muted: #7c7c8a;
+            --accent: #ff6b2c; --accent-soft: rgba(255,107,44,0.12);
+            --accent-glow: #ff8f56; --radius: 14px;
+        }
+        body {
+            font-family: 'DM Sans', -apple-system, sans-serif;
+            background: var(--bg); color: var(--text);
+            line-height: 1.6; -webkit-font-smoothing: antialiased;
+        }
+        nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            padding: 14px 24px;
+            background: rgba(8,8,10,0.88); backdrop-filter: blur(24px);
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .logo {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700; font-size: 19px; text-decoration: none;
+            background: linear-gradient(135deg, var(--accent), var(--accent-glow));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .nav-cta {
+            padding: 9px 22px; border-radius: 8px; font-size: 14px; font-weight: 600;
+            font-family: 'DM Sans', sans-serif;
+            background: var(--accent); color: #fff; border: none; cursor: pointer;
+            text-decoration: none; transition: all 0.2s;
+        }
+        .nav-cta:hover { background: var(--accent-glow); transform: translateY(-1px); }
+
+        .hero {
+            padding: 140px 24px 48px; text-align: center; max-width: 700px; margin: 0 auto;
+            position: relative;
+        }
+        .hero::before {
+            content: ''; position: absolute; top: 60px; left: 50%; transform: translateX(-50%);
+            width: 700px; height: 400px;
+            background: radial-gradient(ellipse, rgba(255,107,44,0.06) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 7px 18px; border-radius: 100px; font-size: 13px; font-weight: 600;
+            background: var(--accent-soft); border: 1px solid rgba(255,107,44,0.18);
+            color: var(--accent-glow); margin-bottom: 28px;
+        }
+        .badge-dot {
+            width: 7px; height: 7px; border-radius: 50%; background: var(--accent);
+            animation: pulse 2s ease-in-out infinite;
+        }
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+        h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(32px, 5vw, 48px); font-weight: 700;
+            line-height: 1.1; letter-spacing: -0.03em; margin-bottom: 16px;
+        }
+        h1 span {
+            background: linear-gradient(135deg, var(--accent), #ffb088);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .hero-sub {
+            font-size: 16px; color: var(--text-muted); max-width: 520px;
+            margin: 0 auto; line-height: 1.7;
+        }
+
+        .posts {
+            max-width: 860px; margin: 0 auto; padding: 0 24px 80px;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+        }
+        .post-card {
+            padding: 28px 24px; background: var(--surface);
+            border: 1px solid var(--border); border-radius: var(--radius);
+            text-decoration: none; color: var(--text);
+            transition: border-color 0.2s, transform 0.2s;
+            display: flex; flex-direction: column;
+        }
+        .post-card:hover {
+            border-color: rgba(255,107,44,0.4);
+            transform: translateY(-3px);
+        }
+        .post-card .post-num {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 13px; font-weight: 700; color: var(--accent);
+            margin-bottom: 12px; letter-spacing: 0.05em;
+        }
+        .post-card h2 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 18px; font-weight: 700; line-height: 1.3;
+            margin-bottom: 10px;
+        }
+        .post-card p {
+            font-size: 14px; color: var(--text-muted); line-height: 1.6;
+            flex: 1;
+        }
+        .post-card .read-link {
+            display: inline-flex; align-items: center; gap: 6px;
+            margin-top: 16px; font-size: 14px; font-weight: 600;
+            color: var(--accent);
+        }
+        .post-card .read-link svg { transition: transform 0.2s; }
+        .post-card:hover .read-link svg { transform: translateX(4px); }
+
+        .bottom-cta {
+            text-align: center; padding: 64px 24px;
+            background: var(--surface); border-top: 1px solid var(--border);
+        }
+        .bottom-cta h2 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 28px; font-weight: 700; margin-bottom: 12px;
+        }
+        .bottom-cta p { color: var(--text-muted); font-size: 15px; margin-bottom: 28px; }
+        .hero-cta {
+            display: inline-flex; align-items: center; gap: 10px;
+            padding: 18px 44px; font-size: 17px; font-weight: 700;
+            font-family: 'DM Sans', sans-serif;
+            background: linear-gradient(135deg, var(--accent), #e05a1a);
+            color: #fff; border: none; border-radius: var(--radius); cursor: pointer;
+            text-decoration: none; transition: all 0.25s;
+            box-shadow: 0 4px 20px rgba(255,107,44,0.25);
+        }
+        .hero-cta:hover { transform: translateY(-3px); box-shadow: 0 8px 32px rgba(255,107,44,0.4); }
+
+        footer {
+            text-align: center; padding: 40px 24px; font-size: 13px;
+            color: var(--text-muted); border-top: 1px solid var(--border);
+        }
+        footer a { color: var(--text-muted); text-decoration: none; font-size: 12px; }
+
+        @media (max-width: 640px) {
+            .hero { padding: 120px 16px 40px; }
+            .posts { grid-template-columns: 1fr; padding: 0 16px 60px; }
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <a href="/" class="logo">CVRoast</a>
+    <a href="/#get-started" class="nav-cta">Try Free</a>
+</nav>
+
+<section class="hero">
+    <div class="badge"><span class="badge-dot"></span> Resume tips that actually work</div>
+    <h1>The <span>CVRoast</span> Blog</h1>
+    <p class="hero-sub">Practical resume and CV advice backed by what actually gets interviews. No fluff, no filler — just the stuff that moves the needle.</p>
+</section>
+
+<section class="posts">
+    {% for post in posts %}
+    <a href="/blog/{{ post.slug }}" class="post-card">
+        <div class="post-num">ARTICLE {{ loop.index }}</div>
+        <h2>{{ post.title }}</h2>
+        <p>{{ post.intro[:150] }}...</p>
+        <span class="read-link">
+            Read article
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </span>
+    </a>
+    {% endfor %}
+</section>
+
+<section class="bottom-cta">
+    <h2>Done reading? Check your score.</h2>
+    <p>See how your resume stacks up in 10 seconds. Free, no signup.</p>
+    <a href="/#get-started" class="hero-cta">Check My Resume Free</a>
+</section>
+
+<footer>
+    <div style="margin-bottom:16px;display:flex;gap:16px;justify-content:center;flex-wrap:wrap">
+        <a href="/free-resume-checker">Free Resume Checker</a>
+        <a href="/ats-score-checker">ATS Score Checker</a>
+        <a href="/resume-review">Resume Review</a>
+        <a href="/cv-review">CV Review</a>
+        <a href="/resume-roast">Resume Roast</a>
+        <a href="/blog">Blog</a>
+    </div>
+    &copy; 2026 CVRoast. Brutally honest resume feedback.
+    <br><a href="/privacy">Privacy Policy</a>
+</footer>
+
+</body>
+</html>

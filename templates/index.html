@@ -456,6 +456,29 @@
         }
         .toast.visible { opacity: 1; }
 
+        /* Social proof notification */
+        .social-proof {
+            position: fixed; bottom: 24px; left: 24px; z-index: 150;
+            display: flex; align-items: center; gap: 12px;
+            padding: 14px 20px; border-radius: 12px;
+            background: var(--surface); border: 1px solid var(--border);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            transform: translateY(120%); transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            max-width: 320px; cursor: pointer;
+        }
+        .social-proof.show { transform: translateY(0); }
+        .social-proof .sp-score {
+            flex-shrink: 0; width: 40px; height: 40px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 15px; font-weight: 800; color: #fff;
+        }
+        .social-proof .sp-score.low { background: rgba(239,68,68,0.2); color: #ef4444; }
+        .social-proof .sp-score.mid { background: rgba(234,179,8,0.2); color: #eab308; }
+        .social-proof .sp-score.high { background: rgba(34,197,94,0.2); color: #22c55e; }
+        .social-proof .sp-text { font-size: 13px; line-height: 1.4; }
+        .social-proof .sp-text strong { color: var(--text); }
+        .social-proof .sp-text span { color: var(--text-muted); }
+
         /* --- Mobile --- */
         @media (max-width: 640px) {
             .hero { padding: 120px 16px 48px; }
@@ -598,6 +621,7 @@
         <a href="/resume-review" style="color:var(--text-muted);text-decoration:none;font-size:12px">Resume Review</a>
         <a href="/cv-review" style="color:var(--text-muted);text-decoration:none;font-size:12px">CV Review</a>
         <a href="/resume-roast" style="color:var(--text-muted);text-decoration:none;font-size:12px">Resume Roast</a>
+        <a href="/blog" style="color:var(--text-muted);text-decoration:none;font-size:12px">Blog</a>
     </div>
     &copy; 2026 CVRoast. Built with questionable life choices and good AI.
     <br><a href="/privacy" style="color:var(--text-muted);text-decoration:underline">Privacy Policy</a>
@@ -605,6 +629,12 @@
 
 <!-- Toast -->
 <div class="toast" id="toast"></div>
+
+<!-- Social proof notification -->
+<div class="social-proof" id="socialProof" onclick="this.classList.remove('show');document.getElementById('resumeInput').focus();">
+    <div class="sp-score" id="spScore">38</div>
+    <div class="sp-text"><strong id="spText">Someone just scored 38/100</strong><br><span id="spTime">2 minutes ago</span></div>
+</div>
 
 <script>
     const STRIPE_KEY = '{{ stripe_key }}';
@@ -922,6 +952,29 @@
             btn.textContent = 'Get Full Rewrite';
         }
     }
+
+    // --- Social proof notifications ---
+    let spActive = true;
+    async function showSocialProof() {
+        if (!spActive) return;
+        try {
+            const res = await fetch('/api/social-proof');
+            const d = await res.json();
+            const el = document.getElementById('socialProof');
+            const scoreEl = document.getElementById('spScore');
+            scoreEl.textContent = d.score;
+            scoreEl.className = 'sp-score ' + (d.score < 40 ? 'low' : d.score < 65 ? 'mid' : 'high');
+            document.getElementById('spText').textContent = `Someone just scored ${d.score}/100`;
+            document.getElementById('spTime').textContent = `${d.minutes_ago} minute${d.minutes_ago > 1 ? 's' : ''} ago`;
+            el.classList.add('show');
+            setTimeout(() => el.classList.remove('show'), 5000);
+        } catch(e) {}
+    }
+    // First notification after 8 seconds, then every 25-40 seconds
+    setTimeout(showSocialProof, 8000);
+    setInterval(() => { if (spActive) setTimeout(showSocialProof, Math.random() * 15000); }, 30000);
+    // Stop notifications once they've roasted (don't distract)
+    const origSubmit = submitRoast;
 </script>
 </body>
 </html>
