@@ -183,6 +183,16 @@
             document.getElementById('reviewContent').innerHTML = markdownToHtml(data.review);
             document.getElementById('review').classList.add('visible');
 
+            // Show email confirmation
+            if (data.emailed) {
+                const tag = document.querySelector('.review-header .tag');
+                tag.innerHTML = '&#10003; Review emailed to you';
+                const note = document.createElement('p');
+                note.style.cssText = 'color:#8e8e9a;font-size:13px;margin-top:8px;';
+                note.textContent = "We've also sent a copy to your email so you don't lose it.";
+                tag.parentElement.appendChild(note);
+            }
+
         } catch (e) {
             document.getElementById('loading').style.display = 'none';
             document.getElementById('error').style.display = 'block';

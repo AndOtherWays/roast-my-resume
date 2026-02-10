@@ -9,6 +9,7 @@ load_dotenv()
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 import anthropic
 import stripe
+import requests as http_requests
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-change-me')
@@ -20,6 +21,8 @@ STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY')
 STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET')
 BASE_URL = os.environ.get('BASE_URL', 'http://localhost:5000')
 PRICE_CENTS = 499  # $4.99
+MAILERSEND_API_KEY = os.environ.get('MAILERSEND_API_KEY')
+FROM_EMAIL = os.environ.get('FROM_EMAIL', 'reviews@cvroast.com')
 
 stripe.api_key = STRIPE_SECRET_KEY
 ai = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
@@ -90,6 +93,62 @@ def _cleanup_old_resumes():
     expired = [k for k, v in resume_store.items() if v['created_at'] < cutoff]
     for k in expired:
         del resume_store[k]
+
+
+def _send_review_email(to_email, review_markdown):
+    """Send the full review to the customer via MailerSend."""
+    if not MAILERSEND_API_KEY or not to_email:
+        return False
+
+    # Convert markdown to simple HTML for email
+    review_html = review_markdown.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+    review_html = (review_html
+        .replace('## ', '<h2 style="color:#ff6b2c;font-size:20px;margin:28px 0 8px;border-bottom:1px solid #2a2a30;padding-bottom:8px;">')
+        .replace('\n\n', '</p><p style="margin:0 0 12px;color:#e8e8ed;line-height:1.7;">')
+        .replace('\n', '<br>')
+        .replace('**', '<strong>', 1))
+    # Close unclosed h2 tags (each heading ends at newline)
+    import re
+    review_html = re.sub(r'(<h2[^>]*>)([^<]+)', r'\1\2</h2>', review_html)
+    review_html = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', review_html)
+
+    html_body = f"""
+    <div style="max-width:640px;margin:0 auto;font-family:'Inter',Arial,sans-serif;background:#0a0a0b;color:#e8e8ed;padding:40px 32px;border-radius:12px;">
+        <div style="text-align:center;margin-bottom:32px;">
+            <span style="font-size:24px;font-weight:800;color:#ff6b2c;">CVRoast</span>
+            <h1 style="font-size:28px;font-weight:800;margin:16px 0 8px;color:#e8e8ed;">Your Full Resume Review</h1>
+            <p style="color:#8e8e9a;font-size:14px;">Here's your detailed analysis. Save this email for reference.</p>
+        </div>
+        <div style="background:#131316;border:1px solid #2a2a30;border-radius:12px;padding:32px;line-height:1.8;">
+            <p style="margin:0 0 12px;color:#e8e8ed;line-height:1.7;">{review_html}</p>
+        </div>
+        <div style="text-align:center;margin-top:32px;padding-top:24px;border-top:1px solid #2a2a30;">
+            <p style="color:#8e8e9a;font-size:13px;">Got a friend who needs a resume reality check?</p>
+            <a href="https://cvroast.com" style="display:inline-block;margin-top:8px;padding:12px 28px;background:#ff6b2c;color:#fff;text-decoration:none;border-radius:8px;font-weight:700;font-size:14px;">Share CVRoast</a>
+            <p style="color:#8e8e9a;font-size:11px;margin-top:20px;">&copy; 2026 CVRoast &middot; <a href="https://cvroast.com/privacy" style="color:#8e8e9a;">Privacy</a></p>
+        </div>
+    </div>
+    """
+
+    try:
+        resp = http_requests.post(
+            'https://api.mailersend.com/v1/email',
+            headers={
+                'Authorization': f'Bearer {MAILERSEND_API_KEY}',
+                'Content-Type': 'application/json',
+            },
+            json={
+                'from': {'email': FROM_EMAIL, 'name': 'CVRoast'},
+                'to': [{'email': to_email}],
+                'subject': 'Your Full Resume Review — CVRoast',
+                'html': html_body,
+                'text': f"Your Full Resume Review\n\n{review_markdown}\n\n---\nGet another roast at https://cvroast.com",
+            },
+            timeout=10,
+        )
+        return resp.status_code in (200, 201, 202)
+    except Exception:
+        return False
 
 
 # --- Routes ---
@@ -247,10 +306,12 @@ def full_review():
         return jsonify({'error': 'Missing parameters'}), 400
 
     # Verify payment
+    customer_email = None
     try:
         session = stripe.checkout.Session.retrieve(session_id)
         if session.payment_status != 'paid':
             return jsonify({'error': 'Payment not completed'}), 402
+        customer_email = session.customer_details.email if session.customer_details else None
     except Exception:
         return jsonify({'error': 'Could not verify payment'}), 400
 
@@ -318,7 +379,14 @@ Resume:
             }]
         )
 
-        return jsonify({'review': response.content[0].text})
+        review_text = response.content[0].text
+
+        # Email the review to the customer
+        emailed = False
+        if customer_email:
+            emailed = _send_review_email(customer_email, review_text)
+
+        return jsonify({'review': review_text, 'emailed': emailed})
 
     except Exception as e:
         paid_sessions.discard(session_id)  # Allow retry on failure
