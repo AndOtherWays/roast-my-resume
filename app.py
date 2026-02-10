@@ -424,6 +424,7 @@ Return ONLY a JSON object (no markdown, no code fences, no explanation) with thi
     "personal_statement": "A powerful 3-4 sentence professional summary packed with ATS keywords relevant to their industry. Highlight years of experience, key competencies, and reliability.",
     "key_skills": ["ATS-friendly skill 1", "Skill 2", "...up to 10"],
     "certifications": ["Cert they have", "Relevant Cert [Recommended]"],
+    "references": "Available on request",
     "experience": [
       {{
         "title": "Job Title",
@@ -444,6 +445,12 @@ Return ONLY a JSON object (no markdown, no code fences, no explanation) with thi
     "Brief description of improvement 3",
     "Brief description of improvement 4",
     "Brief description of improvement 5"
+  ],
+  "tips_to_100": [
+    {{
+      "tip": "Short actionable tip",
+      "why": "Why this matters and why only you can do it"
+    }}
   ]
 }}
 
@@ -457,6 +464,8 @@ CRITICAL RULES:
 - certifications: include ones they mention + suggest up to 3 relevant ones marked [Recommended]
 - Each job should have 2-4 strong bullet points
 - Be realistic with numbers — don't over-inflate, but be specific
+- references: use "Available on request" unless the CV includes actual referee names/details
+- tips_to_100: give 4-6 specific, actionable tips for THIS person to push their score from the "after" score to 100. Focus on things only THEY know — real certifications they could get, actual metrics from their jobs, missing contact details, LinkedIn URL, tailoring for specific roles, etc. Each tip should explain WHY it matters.
 - Return ONLY valid JSON. No text before or after.
 
 CV to rewrite:

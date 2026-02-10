@@ -93,6 +93,21 @@
         .cv-actions-top h2 { font-size: 18px; font-weight: 700; }
         .cv-actions-top .btns { display: flex; gap: 8px; }
 
+        /* Format toggle */
+        .format-toggle {
+            display: none; justify-content: center; gap: 4px; margin-bottom: 16px;
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 10px; padding: 4px; width: fit-content; margin-left: auto; margin-right: auto;
+        }
+        .format-toggle.visible { display: inline-flex; }
+        .format-btn {
+            padding: 8px 20px; font-size: 13px; font-weight: 600;
+            font-family: 'Inter', sans-serif; border: none; border-radius: 8px;
+            cursor: pointer; transition: all 0.15s; color: var(--text-muted); background: none;
+        }
+        .format-btn.active { background: var(--fire); color: #fff; }
+        .format-btn:hover:not(.active) { color: var(--text); }
+
         .cv-document {
             background: #ffffff; color: #1a1a2e; padding: 48px 44px;
             border-radius: 4px; box-shadow: 0 4px 24px rgba(0,0,0,0.4);
@@ -115,6 +130,38 @@
             border: 1px solid rgba(255,107,44,0.15); border-radius: 6px;
         }
         .edit-hint.visible { display: block; }
+
+        /* --- Modern (sidebar) format --- */
+        .cv-modern { display: flex; gap: 0; }
+        .cv-sidebar {
+            width: 220px; flex-shrink: 0; background: #1a365d; color: #fff;
+            padding: 36px 24px; border-radius: 4px 0 0 4px;
+        }
+        .cv-sidebar .cv-name { color: #fff; font-size: 22px; margin-bottom: 4px; }
+        .cv-sidebar .cv-title-sm { font-size: 12px; color: #a0c4e8; line-height: 1.5; margin-bottom: 24px; }
+        .cv-sidebar .sidebar-section {
+            font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+            color: #a0c4e8; margin: 20px 0 8px; padding-bottom: 4px;
+            border-bottom: 1px solid rgba(255,255,255,0.15);
+        }
+        .cv-sidebar .sidebar-section:first-of-type { margin-top: 0; }
+        .cv-sidebar .contact-item { font-size: 13px; color: #d0e4f5; margin-bottom: 6px; line-height: 1.4; }
+        .cv-sidebar .skill-item {
+            display: inline-block; padding: 3px 10px; margin: 2px; font-size: 11px;
+            background: rgba(255,255,255,0.12); border-radius: 3px; color: #d0e4f5;
+        }
+        .cv-sidebar .cert-item { font-size: 12px; color: #d0e4f5; margin-bottom: 4px; line-height: 1.4; }
+        .cv-sidebar .cert-item .rec { color: #a0c4e8; font-style: italic; font-size: 11px; }
+        .cv-sidebar .ref-text { font-size: 12px; color: #d0e4f5; line-height: 1.4; }
+        .cv-main {
+            flex: 1; padding: 36px 32px; background: #fff; border-radius: 0 4px 4px 0;
+        }
+        .cv-main .cv-section-title { color: #1a365d; }
+        .cv-main .cv-summary { color: #333; }
+        .cv-main .cv-job { margin-bottom: 18px; }
+        .cv-main .cv-job-title { font-size: 14px; }
+        .cv-main .cv-job-meta { font-size: 12px; }
+        .cv-main .cv-job li { font-size: 13px; }
         .cv-name { font-size: 28px; font-weight: 800; color: #1a1a2e; margin-bottom: 2px; }
         .cv-title { font-size: 15px; color: #555; margin-bottom: 12px; }
         .cv-contact {
@@ -146,6 +193,34 @@
         .cv-cert-list { padding-left: 20px; margin: 0; }
         .cv-cert-list li { margin-bottom: 3px; color: #333; }
         .cv-cert-list .recommended { color: #888; font-style: italic; }
+
+        /* Tips to 100 section */
+        .tips-section {
+            display: none; margin-top: 32px; padding: 28px 32px;
+            background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+        }
+        .tips-section.visible { display: block; animation: fadeUp 0.5s ease-out 0.2s both; }
+        .tips-section h2 { font-size: 20px; font-weight: 800; margin-bottom: 6px; }
+        .tips-section .tips-subtitle {
+            font-size: 14px; color: var(--text-muted); margin-bottom: 20px; line-height: 1.6;
+        }
+        .tip-card {
+            padding: 16px 20px; margin-bottom: 12px;
+            background: var(--surface-2); border: 1px solid var(--border);
+            border-radius: 10px; transition: border-color 0.2s;
+        }
+        .tip-card:last-child { margin-bottom: 0; }
+        .tip-card:hover { border-color: var(--fire); }
+        .tip-card .tip-header {
+            display: flex; align-items: flex-start; gap: 10px; margin-bottom: 6px;
+        }
+        .tip-card .tip-number {
+            flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%;
+            background: var(--fire); color: #fff; font-size: 12px; font-weight: 700;
+            display: flex; align-items: center; justify-content: center; margin-top: 1px;
+        }
+        .tip-card .tip-text { font-size: 14px; font-weight: 600; color: var(--text); line-height: 1.5; }
+        .tip-card .tip-why { font-size: 13px; color: var(--text-muted); line-height: 1.6; margin-left: 34px; }
 
         @keyframes fadeUp {
             from { opacity: 0; transform: translateY(20px); }
@@ -205,7 +280,7 @@
             * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
             body { background: white !important; margin: 0; padding: 0; }
             nav, .score-comparison, .cv-actions-top, .bottom-actions,
-            .email-note, .edit-hint, .loading, .error, footer { display: none !important; }
+            .email-note, .edit-hint, .format-toggle, .tips-section, .loading, .error, footer { display: none !important; }
             .container { padding: 0; max-width: 100%; }
             .cv-wrapper { display: block !important; }
             .cv-document {
@@ -252,6 +327,12 @@
         &#10003; A copy has been emailed to you for safekeeping.
     </div>
 
+    <!-- Format toggle -->
+    <div class="format-toggle" id="formatToggle">
+        <button class="format-btn active" id="fmtClassic" onclick="switchFormat('classic')">Classic</button>
+        <button class="format-btn" id="fmtModern" onclick="switchFormat('modern')">Modern</button>
+    </div>
+
     <!-- CV Document -->
     <div class="cv-wrapper" id="cvWrapper">
         <div class="cv-actions-top">
@@ -269,6 +350,13 @@
         </div>
         <div class="edit-hint" id="editHint">Click any text on the CV to edit it. Your changes will be included when you save as PDF.</div>
         <div class="cv-document" id="cvDocument"></div>
+    </div>
+
+    <!-- Tips to 100 -->
+    <div class="tips-section" id="tipsSection">
+        <h2>How to reach 100/100</h2>
+        <p class="tips-subtitle">We've taken your CV as far as we can with the information available. Here's what only <strong>you</strong> can do to push it to a perfect score:</p>
+        <div id="tipsList"></div>
     </div>
 
     <!-- Bottom actions -->
@@ -336,7 +424,11 @@
         return d.innerHTML;
     }
 
+    let cvData = null;
+    let currentFormat = 'classic';
+
     function renderCV(data) {
+        cvData = data;
         const cv = data.cv;
 
         // --- Score comparison ---
@@ -357,84 +449,173 @@
             document.getElementById('emailNote').classList.add('visible');
         }
 
-        // --- Build CV HTML ---
-        let html = '';
+        // Show format toggle and render
+        document.getElementById('formatToggle').classList.add('visible');
+        renderFormat('classic');
+        document.getElementById('cvWrapper').classList.add('visible');
+        document.getElementById('bottomActions').style.display = 'flex';
 
-        // Name & title
+        // --- Tips to 100 ---
+        if (data.tips_to_100 && data.tips_to_100.length) {
+            const tipsList = document.getElementById('tipsList');
+            data.tips_to_100.forEach((tip, i) => {
+                const card = document.createElement('div');
+                card.className = 'tip-card';
+                card.innerHTML =
+                    '<div class="tip-header">' +
+                        '<span class="tip-number">' + (i + 1) + '</span>' +
+                        '<span class="tip-text">' + esc(tip.tip || tip) + '</span>' +
+                    '</div>' +
+                    (tip.why ? '<div class="tip-why">' + esc(tip.why) + '</div>' : '');
+                tipsList.appendChild(card);
+            });
+            document.getElementById('tipsSection').classList.add('visible');
+        }
+    }
+
+    function switchFormat(fmt) {
+        if (isEditing) toggleEdit(); // exit edit mode first
+        currentFormat = fmt;
+        document.getElementById('fmtClassic').classList.toggle('active', fmt === 'classic');
+        document.getElementById('fmtModern').classList.toggle('active', fmt === 'modern');
+        renderFormat(fmt);
+    }
+
+    function certHtml(cert) {
+        const isRec = cert.includes('[Recommended]');
+        const text = cert.replace('[Recommended]', '').trim();
+        return isRec ? esc(text) + ' <span class="recommended">(Recommended)</span>' : esc(text);
+    }
+
+    function renderFormat(fmt) {
+        const cv = cvData.cv;
+        const refs = cv.references || 'Available on request';
+
+        if (fmt === 'modern') {
+            renderModern(cv, refs);
+        } else {
+            renderClassic(cv, refs);
+        }
+    }
+
+    function renderClassic(cv, refs) {
+        let html = '';
         html += '<div class="cv-name">' + esc(cv.name) + '</div>';
         if (cv.title) html += '<div class="cv-title">' + esc(cv.title) + '</div>';
 
-        // Contact info
         html += '<div class="cv-contact">';
         if (cv.location) html += '<span>' + esc(cv.location) + '</span>';
         if (cv.phone) html += '<span>' + esc(cv.phone) + '</span>';
         if (cv.email) html += '<span>' + esc(cv.email) + '</span>';
         html += '</div>';
 
-        // Personal statement
         if (cv.personal_statement) {
             html += '<div class="cv-section-title">Professional Summary</div>';
             html += '<div class="cv-summary">' + esc(cv.personal_statement) + '</div>';
         }
 
-        // Key skills
         if (cv.key_skills && cv.key_skills.length) {
             html += '<div class="cv-section-title">Key Skills</div>';
             html += '<div class="cv-skills">';
-            cv.key_skills.forEach(skill => {
-                html += '<span class="cv-skill-tag">' + esc(skill) + '</span>';
-            });
+            cv.key_skills.forEach(s => { html += '<span class="cv-skill-tag">' + esc(s) + '</span>'; });
             html += '</div>';
         }
 
-        // Experience
         if (cv.experience && cv.experience.length) {
             html += '<div class="cv-section-title">Professional Experience</div>';
             cv.experience.forEach(job => {
-                html += '<div class="cv-job">';
-                html += '<div class="cv-job-title">' + esc(job.title) + '</div>';
+                html += '<div class="cv-job"><div class="cv-job-title">' + esc(job.title) + '</div>';
                 html += '<div class="cv-job-meta">' + esc(job.company) + ' | ' + esc(job.dates) + '</div>';
                 if (job.bullets && job.bullets.length) {
                     html += '<ul>';
-                    job.bullets.forEach(b => {
-                        html += '<li>' + esc(b) + '</li>';
-                    });
+                    job.bullets.forEach(b => { html += '<li>' + esc(b) + '</li>'; });
                     html += '</ul>';
                 }
                 html += '</div>';
             });
         }
 
-        // Certifications
         if (cv.certifications && cv.certifications.length) {
             html += '<div class="cv-section-title">Certifications & Clearances</div>';
             html += '<ul class="cv-cert-list">';
-            cv.certifications.forEach(cert => {
-                const isRec = cert.includes('[Recommended]');
-                const text = cert.replace('[Recommended]', '').trim();
-                if (isRec) {
-                    html += '<li>' + esc(text) + ' <span class="recommended">(Recommended)</span></li>';
-                } else {
-                    html += '<li>' + esc(text) + '</li>';
-                }
-            });
+            cv.certifications.forEach(c => { html += '<li>' + certHtml(c) + '</li>'; });
             html += '</ul>';
         }
 
-        // Education
         if (cv.education && cv.education.length) {
             html += '<div class="cv-section-title">Education</div>';
             cv.education.forEach(edu => {
-                html += '<div class="cv-job">';
-                html += '<div class="cv-job-title">' + esc(edu.qualification || edu.title || '') + '</div>';
-                html += '<div class="cv-job-meta">' + esc(edu.institution || '') + (edu.year ? ' | ' + esc(edu.year) : '') + '</div>';
-                html += '</div>';
+                html += '<div class="cv-job"><div class="cv-job-title">' + esc(edu.qualification || edu.title || '') + '</div>';
+                html += '<div class="cv-job-meta">' + esc(edu.institution || '') + (edu.year ? ' | ' + esc(edu.year) : '') + '</div></div>';
             });
         }
 
+        html += '<div class="cv-section-title">References</div>';
+        html += '<div class="cv-summary">' + esc(refs) + '</div>';
+
         document.getElementById('cvDocument').innerHTML = html;
-        document.getElementById('cvWrapper').classList.add('visible');
-        document.getElementById('bottomActions').style.display = 'flex';
+    }
+
+    function renderModern(cv, refs) {
+        let sidebar = '';
+        sidebar += '<div class="cv-name">' + esc(cv.name) + '</div>';
+        if (cv.title) sidebar += '<div class="cv-title-sm">' + esc(cv.title) + '</div>';
+
+        sidebar += '<div class="sidebar-section">Contact</div>';
+        if (cv.location) sidebar += '<div class="contact-item">' + esc(cv.location) + '</div>';
+        if (cv.phone) sidebar += '<div class="contact-item">' + esc(cv.phone) + '</div>';
+        if (cv.email) sidebar += '<div class="contact-item">' + esc(cv.email) + '</div>';
+
+        if (cv.key_skills && cv.key_skills.length) {
+            sidebar += '<div class="sidebar-section">Key Skills</div>';
+            cv.key_skills.forEach(s => { sidebar += '<span class="skill-item">' + esc(s) + '</span>'; });
+        }
+
+        if (cv.certifications && cv.certifications.length) {
+            sidebar += '<div class="sidebar-section">Certifications</div>';
+            cv.certifications.forEach(c => {
+                const isRec = c.includes('[Recommended]');
+                const text = c.replace('[Recommended]', '').trim();
+                sidebar += '<div class="cert-item">' + esc(text);
+                if (isRec) sidebar += ' <span class="rec">(Rec.)</span>';
+                sidebar += '</div>';
+            });
+        }
+
+        sidebar += '<div class="sidebar-section">References</div>';
+        sidebar += '<div class="ref-text">' + esc(refs) + '</div>';
+
+        let main = '';
+        if (cv.personal_statement) {
+            main += '<div class="cv-section-title">Professional Summary</div>';
+            main += '<div class="cv-summary">' + esc(cv.personal_statement) + '</div>';
+        }
+
+        if (cv.experience && cv.experience.length) {
+            main += '<div class="cv-section-title">Professional Experience</div>';
+            cv.experience.forEach(job => {
+                main += '<div class="cv-job"><div class="cv-job-title">' + esc(job.title) + '</div>';
+                main += '<div class="cv-job-meta">' + esc(job.company) + ' | ' + esc(job.dates) + '</div>';
+                if (job.bullets && job.bullets.length) {
+                    main += '<ul>';
+                    job.bullets.forEach(b => { main += '<li>' + esc(b) + '</li>'; });
+                    main += '</ul>';
+                }
+                main += '</div>';
+            });
+        }
+
+        if (cv.education && cv.education.length) {
+            main += '<div class="cv-section-title">Education</div>';
+            cv.education.forEach(edu => {
+                main += '<div class="cv-job"><div class="cv-job-title">' + esc(edu.qualification || edu.title || '') + '</div>';
+                main += '<div class="cv-job-meta">' + esc(edu.institution || '') + (edu.year ? ' | ' + esc(edu.year) : '') + '</div></div>';
+            });
+        }
+
+        document.getElementById('cvDocument').innerHTML =
+            '<div class="cv-modern"><div class="cv-sidebar">' + sidebar + '</div>' +
+            '<div class="cv-main">' + main + '</div></div>';
     }
 
     // --- Edit mode ---
@@ -452,8 +633,8 @@
             btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Done Editing';
             btn.classList.remove('btn-secondary');
             btn.classList.add('btn-primary');
-            // Make all text elements editable
-            doc.querySelectorAll('.cv-name, .cv-title, .cv-contact span, .cv-summary, .cv-skill-tag, .cv-job-title, .cv-job-meta, .cv-job li, .cv-cert-list li, .cv-section-title').forEach(el => {
+            // Make all text elements editable (both classic and modern)
+            doc.querySelectorAll('.cv-name, .cv-title, .cv-title-sm, .cv-contact span, .cv-summary, .cv-skill-tag, .skill-item, .cv-job-title, .cv-job-meta, .cv-job li, .cv-cert-list li, .cert-item, .ref-text, .contact-item, .cv-section-title, .sidebar-section').forEach(el => {
                 el.setAttribute('contenteditable', 'true');
             });
         } else {
