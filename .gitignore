@@ -3,3 +3,7 @@ __pycache__/
 *.pyc
 .venv/
 venv/
+preview.html
+test_result.json
+payments.json
+refund.json
