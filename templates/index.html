@@ -487,28 +487,27 @@
     let currentResumeId = null;
     let detectedCurrency = 'usd';
 
-    // Detect country and update pricing
+    // Detect country directly from browser IP (no proxy issues)
+    const PRICING = {
+        GB: { currency: 'gbp', sym: '£', whole: '4', frac: '.99', display: '£4.99', compare: '£50+' },
+        US: { currency: 'usd', sym: '$', whole: '4', frac: '.99', display: '$4.99', compare: '$50+' },
+        AU: { currency: 'aud', sym: 'A$', whole: '9', frac: '.99', display: 'A$9.99', compare: 'A$80+' },
+    };
+    const DEFAULT_PRICING = PRICING.US;
+
     (async function detectGeo() {
         try {
-            const res = await fetch('/api/geo');
+            const res = await fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout(3000) });
             const geo = await res.json();
-            detectedCurrency = geo.currency;
-
-            // Map for display
-            const compareMap = { gbp: '£50+', usd: '$50+', aud: 'A$80+' };
-            const mainMap = {
-                gbp: { sym: '£', whole: '4', frac: '.99' },
-                usd: { sym: '$', whole: '4', frac: '.99' },
-                aud: { sym: 'A$', whole: '9', frac: '.99' },
-            };
-            const p = mainMap[geo.currency] || mainMap.usd;
-            const cmp = compareMap[geo.currency] || compareMap.usd;
+            const country = (geo.country_code || '').toUpperCase();
+            const p = PRICING[country] || DEFAULT_PRICING;
+            detectedCurrency = p.currency;
 
             document.getElementById('priceTag').innerHTML =
                 '<span class="dollar">' + p.sym + '</span>' + p.whole + '<sup>' + p.frac + '</sup>';
             document.getElementById('priceCompare').innerHTML =
-                'vs <s>' + cmp + '</s> for a human resume writer';
-            document.getElementById('statPrice').textContent = geo.display;
+                'vs <s>' + p.compare + '</s> for a human resume writer';
+            document.getElementById('statPrice').textContent = p.display;
         } catch (e) { /* fallback to USD defaults */ }
     })();
 
