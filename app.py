@@ -25,9 +25,16 @@ STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY')
 STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY')
 STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET')
 BASE_URL = os.environ.get('BASE_URL', 'http://localhost:5000')
-PRICE_CENTS = 499  # $4.99
 MAILERSEND_API_KEY = os.environ.get('MAILERSEND_API_KEY')
 FROM_EMAIL = os.environ.get('FROM_EMAIL', 'reviews@cvroast.com')
+
+# Currency config per country
+CURRENCY_MAP = {
+    'GB': {'currency': 'gbp', 'amount': 499, 'symbol': '\u00a3', 'code': 'GBP', 'display': '\u00a34.99'},
+    'US': {'currency': 'usd', 'amount': 499, 'symbol': '$', 'code': 'USD', 'display': '$4.99'},
+    'AU': {'currency': 'aud', 'amount': 999, 'symbol': 'A$', 'code': 'AUD', 'display': 'A$9.99'},
+}
+DEFAULT_CURRENCY = CURRENCY_MAP['US']
 
 stripe.api_key = STRIPE_SECRET_KEY
 ai = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
@@ -229,6 +236,26 @@ def upload_resume():
     return jsonify({'text': text, 'filename': file.filename})
 
 
+@app.route('/api/geo', methods=['GET'])
+def detect_geo():
+    """Detect user's country from IP for currency selection."""
+    ip = request.headers.get('X-Forwarded-For', request.remote_addr) or ''
+    ip = ip.split(',')[0].strip()
+    try:
+        resp = http_requests.get(f'https://ipapi.co/{ip}/country/', timeout=3)
+        country = resp.text.strip().upper() if resp.ok and len(resp.text.strip()) == 2 else 'US'
+    except Exception:
+        country = 'US'
+    pricing = CURRENCY_MAP.get(country, DEFAULT_CURRENCY)
+    return jsonify({
+        'country': country,
+        'currency': pricing['currency'],
+        'symbol': pricing['symbol'],
+        'amount': pricing['amount'],
+        'display': pricing['display'],
+    })
+
+
 @app.route('/')
 def index():
     return render_template('index.html', stripe_key=STRIPE_PUBLISHABLE_KEY)
@@ -333,17 +360,21 @@ def create_checkout():
             'created_at': time.time()
         }
 
+    # Determine currency from request
+    req_currency = (data.get('currency') or 'usd').lower()
+    pricing = next((v for v in CURRENCY_MAP.values() if v['currency'] == req_currency), DEFAULT_CURRENCY)
+
     try:
         session = stripe.checkout.Session.create(
             payment_method_types=['card'],
             line_items=[{
                 'price_data': {
-                    'currency': 'usd',
+                    'currency': pricing['currency'],
                     'product_data': {
                         'name': 'Professional CV Rewrite',
                         'description': 'Complete CV rewrite with ATS-optimized keywords, achievement metrics, and professional formatting.',
                     },
-                    'unit_amount': PRICE_CENTS,
+                    'unit_amount': pricing['amount'],
                 },
                 'quantity': 1,
             }],
@@ -395,7 +426,7 @@ def full_review():
     if session_id in paid_sessions:
         return jsonify({'error': 'This review has already been generated. Check your email or refresh the page.'}), 409
     paid_sessions.add(session_id)
-    _track('payment', PRICE_CENTS)
+    _track('payment', session.amount_total or 499)
 
     # Get resume — try in-memory cache first, fall back to client-submitted text
     cached = resume_store.get(resume_id)

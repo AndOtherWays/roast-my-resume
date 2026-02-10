@@ -435,8 +435,8 @@
             <div class="upsell-feat"><span class="check">&#10003;</span> Professional formatting</div>
             <div class="upsell-feat"><span class="check">&#10003;</span> Emailed + instant download</div>
         </div>
-        <div class="price-tag"><span class="dollar">$</span>4<sup>.99</sup></div>
-        <div class="price-compare">vs <s>$50+</s> for a human resume writer</div>
+        <div class="price-tag" id="priceTag"><span class="dollar">$</span>4<sup>.99</sup></div>
+        <div class="price-compare" id="priceCompare">vs <s>$50+</s> for a human resume writer</div>
         <button class="btn-upgrade" id="upgradeBtn" onclick="checkout()">Get My Rewritten CV</button>
         <div class="guarantee">One-time payment. Instant delivery. No subscription.</div>
     </div>
@@ -448,7 +448,7 @@
     <div class="stats">
         <div><div class="stat-num" id="statRoasts">0</div><div class="stat-label">Resumes roasted</div></div>
         <div><div class="stat-num">10s</div><div class="stat-label">Average review time</div></div>
-        <div><div class="stat-num">$4.99</div><div class="stat-label">For a full rewrite</div></div>
+        <div><div class="stat-num" id="statPrice">$4.99</div><div class="stat-label">For a full rewrite</div></div>
     </div>
 </section>
 
@@ -485,6 +485,32 @@
 <script>
     const STRIPE_KEY = '{{ stripe_key }}';
     let currentResumeId = null;
+    let detectedCurrency = 'usd';
+
+    // Detect country and update pricing
+    (async function detectGeo() {
+        try {
+            const res = await fetch('/api/geo');
+            const geo = await res.json();
+            detectedCurrency = geo.currency;
+
+            // Map for display
+            const compareMap = { gbp: '£50+', usd: '$50+', aud: 'A$80+' };
+            const mainMap = {
+                gbp: { sym: '£', whole: '4', frac: '.99' },
+                usd: { sym: '$', whole: '4', frac: '.99' },
+                aud: { sym: 'A$', whole: '9', frac: '.99' },
+            };
+            const p = mainMap[geo.currency] || mainMap.usd;
+            const cmp = compareMap[geo.currency] || compareMap.usd;
+
+            document.getElementById('priceTag').innerHTML =
+                '<span class="dollar">' + p.sym + '</span>' + p.whole + '<sup>' + p.frac + '</sup>';
+            document.getElementById('priceCompare').innerHTML =
+                'vs <s>' + cmp + '</s> for a human resume writer';
+            document.getElementById('statPrice').textContent = geo.display;
+        } catch (e) { /* fallback to USD defaults */ }
+    })();
 
     // Character counter
     const ta = document.getElementById('resumeInput');
@@ -692,7 +718,8 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     resume_id: currentResumeId,
-                    resume: ta.value.trim()
+                    resume: ta.value.trim(),
+                    currency: detectedCurrency
                 })
             });
 
