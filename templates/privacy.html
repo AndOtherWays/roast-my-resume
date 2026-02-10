@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy — CVRoast</title>
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg: #0a0a0b; --surface: #131316; --border: #2a2a30;
+            --text: #e8e8ed; --text-muted: #8e8e9a; --fire: #ff6b2c;
+            --fire-glow: #ff8a50;
+        }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg); color: var(--text);
+            line-height: 1.8; -webkit-font-smoothing: antialiased;
+        }
+        nav {
+            padding: 16px 24px; border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .logo {
+            font-weight: 800; font-size: 18px; text-decoration: none;
+            background: linear-gradient(135deg, var(--fire), var(--fire-glow));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .container { max-width: 700px; margin: 0 auto; padding: 48px 24px 80px; }
+        h1 { font-size: 32px; font-weight: 800; margin-bottom: 8px; }
+        .updated { font-size: 13px; color: var(--text-muted); margin-bottom: 40px; }
+        h2 {
+            font-size: 18px; font-weight: 700; margin: 32px 0 12px;
+            color: var(--fire-glow);
+        }
+        p, li { font-size: 15px; color: var(--text-muted); margin-bottom: 12px; }
+        ul { padding-left: 24px; }
+        li { margin-bottom: 8px; }
+        strong { color: var(--text); }
+        a { color: var(--fire); }
+        footer {
+            text-align: center; padding: 48px 24px; font-size: 13px;
+            color: var(--text-muted); border-top: 1px solid var(--border);
+        }
+    </style>
+</head>
+<body>
+<nav>
+    <a href="/" class="logo">CVRoast</a>
+</nav>
+<div class="container">
+    <h1>Privacy Policy</h1>
+    <p class="updated">Last updated: February 10, 2026</p>
+
+    <h2>What we collect</h2>
+    <p>When you use CVRoast, we process:</p>
+    <ul>
+        <li><strong>Resume text</strong> you paste into the tool</li>
+        <li><strong>Payment information</strong> if you purchase a full review (handled entirely by Stripe)</li>
+        <li><strong>IP address</strong> (hashed, for rate limiting only)</li>
+    </ul>
+
+    <h2>How we use your data</h2>
+    <ul>
+        <li>Your resume text is sent to an AI model to generate your review</li>
+        <li>Resume text is temporarily cached in memory for up to <strong>2 hours</strong> so you can upgrade to a full review</li>
+        <li>After 2 hours, your resume data is automatically and permanently deleted</li>
+        <li>We do not store resumes in any database or file system</li>
+    </ul>
+
+    <h2>What we never do</h2>
+    <ul>
+        <li>We <strong>never sell</strong> your data to anyone</li>
+        <li>We <strong>never use</strong> your resume to train AI models</li>
+        <li>We <strong>never share</strong> your resume with third parties</li>
+        <li>We <strong>never store</strong> your resume beyond the 2-hour session window</li>
+        <li>We <strong>never collect</strong> your name, email, or any personal identifiers</li>
+    </ul>
+
+    <h2>Payments</h2>
+    <p>All payments are processed by <strong>Stripe</strong>. We never see or store your card number. Stripe's privacy policy applies to payment data: <a href="https://stripe.com/privacy" target="_blank" rel="noopener">stripe.com/privacy</a>.</p>
+
+    <h2>Cookies</h2>
+    <p>We do not use tracking cookies, analytics scripts, or any third-party trackers. The only client-side storage is a local counter for the number of resumes you've roasted (stored in your browser's localStorage).</p>
+
+    <h2>Data retention</h2>
+    <ul>
+        <li><strong>Resume text:</strong> Deleted automatically after 2 hours</li>
+        <li><strong>Rate limit data:</strong> IP hashes reset every 24 hours</li>
+        <li><strong>Payment records:</strong> Retained by Stripe per their data retention policy</li>
+        <li><strong>Aggregate analytics:</strong> We track anonymous counts (number of roasts, payments) with no personally identifiable information</li>
+    </ul>
+
+    <h2>Your rights</h2>
+    <p>Since we don't store personal data beyond the 2-hour session window, there is typically nothing to delete. If you have concerns, contact us at the email below.</p>
+
+    <h2>Contact</h2>
+    <p>For privacy questions: <a href="mailto:hello@cvroast.com">hello@cvroast.com</a></p>
+</div>
+<footer>&copy; 2026 CVRoast</footer>
+</body>
+</html>

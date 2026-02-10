@@ -24,10 +24,40 @@ PRICE_CENTS = 499  # $4.99
 stripe.api_key = STRIPE_SECRET_KEY
 ai = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
 
+ADMIN_TOKEN = os.environ.get('ADMIN_TOKEN', 'change-me-in-prod')
+
 # --- In-memory stores (fine for single-instance deploy) ---
 resume_store = {}       # uuid -> {resume, created_at}
 rate_limits = {}        # ip_hash -> {count, window_start}
 paid_sessions = set()   # session_ids that have been used
+
+# --- Analytics ---
+analytics = {
+    'total_roasts': 0,
+    'total_checkouts': 0,
+    'total_payments': 0,
+    'revenue_cents': 0,
+    'started_at': datetime.utcnow().isoformat(),
+    'daily': {},        # "2026-02-10" -> {roasts, checkouts, payments, revenue_cents}
+    'scores': [],       # last 100 scores for avg calculation
+}
+
+def _track(event, amount_cents=0):
+    today = datetime.utcnow().strftime('%Y-%m-%d')
+    if today not in analytics['daily']:
+        analytics['daily'][today] = {'roasts': 0, 'checkouts': 0, 'payments': 0, 'revenue_cents': 0}
+    day = analytics['daily'][today]
+    if event == 'roast':
+        analytics['total_roasts'] += 1
+        day['roasts'] += 1
+    elif event == 'checkout':
+        analytics['total_checkouts'] += 1
+        day['checkouts'] += 1
+    elif event == 'payment':
+        analytics['total_payments'] += 1
+        analytics['revenue_cents'] += amount_cents
+        day['payments'] += 1
+        day['revenue_cents'] += amount_cents
 
 FREE_ROASTS_PER_DAY = 5
 RESUME_TTL_HOURS = 2
@@ -130,6 +160,9 @@ Resume:
         _cleanup_old_resumes()
 
         result['resume_id'] = resume_id
+        _track('roast')
+        analytics['scores'].append(result.get('score', 0))
+        analytics['scores'] = analytics['scores'][-100:]  # keep last 100
         return jsonify(result)
 
     except json.JSONDecodeError:
@@ -184,6 +217,7 @@ def create_checkout():
             cancel_url=BASE_URL + '/#get-started',
             client_reference_id=resume_id,
         )
+        _track('checkout')
         return jsonify({'url': session.url})
     except Exception as e:
         return jsonify({'error': 'Payment setup failed. Please try again.'}), 500
@@ -224,6 +258,7 @@ def full_review():
     if session_id in paid_sessions:
         return jsonify({'error': 'This review has already been generated. Check your email or refresh the page.'}), 409
     paid_sessions.add(session_id)
+    _track('payment', PRICE_CENTS)
 
     # Get resume
     cached = resume_store.get(resume_id)
@@ -288,6 +323,44 @@ Resume:
     except Exception as e:
         paid_sessions.discard(session_id)  # Allow retry on failure
         return jsonify({'error': 'Review generation failed. Please refresh to try again.'}), 500
+
+
+# --- Admin stats ---
+@app.route('/admin/stats')
+def admin_stats():
+    token = request.args.get('token')
+    if token != ADMIN_TOKEN:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    today = datetime.utcnow().strftime('%Y-%m-%d')
+    today_stats = analytics['daily'].get(today, {'roasts': 0, 'checkouts': 0, 'payments': 0, 'revenue_cents': 0})
+    avg_score = round(sum(analytics['scores']) / len(analytics['scores']), 1) if analytics['scores'] else 0
+    conversion = round(analytics['total_payments'] / analytics['total_checkouts'] * 100, 1) if analytics['total_checkouts'] > 0 else 0
+    upsell = round(analytics['total_checkouts'] / analytics['total_roasts'] * 100, 1) if analytics['total_roasts'] > 0 else 0
+
+    return jsonify({
+        'today': today_stats,
+        'all_time': {
+            'roasts': analytics['total_roasts'],
+            'checkouts': analytics['total_checkouts'],
+            'payments': analytics['total_payments'],
+            'revenue': f"${analytics['revenue_cents'] / 100:.2f}",
+        },
+        'rates': {
+            'avg_score': avg_score,
+            'upsell_rate': f"{upsell}%",
+            'checkout_conversion': f"{conversion}%",
+        },
+        'daily_breakdown': dict(sorted(analytics['daily'].items(), reverse=True)[:7]),
+        'uptime_since': analytics['started_at'],
+        'resumes_cached': len(resume_store),
+    })
+
+
+# --- Privacy policy ---
+@app.route('/privacy')
+def privacy():
+    return render_template('privacy.html')
 
 
 # --- Health check ---
