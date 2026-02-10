@@ -256,6 +256,16 @@ def detect_geo():
     })
 
 
+@app.route('/robots.txt')
+def robots():
+    return app.send_static_file('robots.txt')
+
+
+@app.route('/sitemap.xml')
+def sitemap():
+    return app.send_static_file('sitemap.xml')
+
+
 @app.route('/')
 def index():
     return render_template('index.html', stripe_key=STRIPE_PUBLISHABLE_KEY)
