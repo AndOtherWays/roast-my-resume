@@ -575,6 +575,8 @@
 
             const data = await res.json();
             if (data.url) {
+                // Save resume locally so it survives the Stripe redirect
+                sessionStorage.setItem('rmr_resume', ta.value.trim());
                 window.location.href = data.url;
             } else {
                 showToast(data.error || 'Payment setup failed.');

@@ -167,7 +167,11 @@
             const res = await fetch('/api/full-review', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ session_id: SESSION_ID, resume_id: RESUME_ID })
+                body: JSON.stringify({
+                    session_id: SESSION_ID,
+                    resume_id: RESUME_ID,
+                    resume: sessionStorage.getItem('rmr_resume') || ''
+                })
             });
 
             const data = await res.json();

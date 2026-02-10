@@ -321,12 +321,12 @@ def full_review():
     paid_sessions.add(session_id)
     _track('payment', PRICE_CENTS)
 
-    # Get resume
+    # Get resume — try in-memory cache first, fall back to client-submitted text
     cached = resume_store.get(resume_id)
-    if not cached:
-        return jsonify({'error': 'Resume expired. Please start over.'}), 410
+    resume_text = cached['resume'] if cached else (data.get('resume') or '').strip()
 
-    resume_text = cached['resume']
+    if len(resume_text) < 80:
+        return jsonify({'error': 'Resume expired. Please start over.'}), 410
 
     try:
         response = ai.messages.create(
