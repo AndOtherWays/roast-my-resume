@@ -1,7 +1,9 @@
 import os
+import io
 import uuid
 import time
 import json
+import re
 import hashlib
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
@@ -10,9 +12,12 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for
 import anthropic
 import stripe
 import requests as http_requests
+from pypdf import PdfReader
+from docx import Document
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-change-me')
+app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5MB max upload
 
 # --- Config ---
 ANTHROPIC_API_KEY = os.environ.get('ANTHROPIC_API_KEY')
@@ -95,40 +100,73 @@ def _cleanup_old_resumes():
         del resume_store[k]
 
 
-def _send_review_email(to_email, review_markdown):
-    """Send the full review to the customer via MailerSend."""
+def _send_cv_email(to_email, cv_data):
+    """Send the rewritten CV to the customer via MailerSend."""
     if not MAILERSEND_API_KEY or not to_email:
         return False
 
-    # Convert markdown to simple HTML for email
-    review_html = review_markdown.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
-    review_html = (review_html
-        .replace('## ', '<h2 style="color:#ff6b2c;font-size:20px;margin:28px 0 8px;border-bottom:1px solid #2a2a30;padding-bottom:8px;">')
-        .replace('\n\n', '</p><p style="margin:0 0 12px;color:#e8e8ed;line-height:1.7;">')
-        .replace('\n', '<br>')
-        .replace('**', '<strong>', 1))
-    # Close unclosed h2 tags (each heading ends at newline)
-    import re
-    review_html = re.sub(r'(<h2[^>]*>)([^<]+)', r'\1\2</h2>', review_html)
-    review_html = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', review_html)
+    cv = cv_data.get('cv', {})
+    name = cv.get('name', 'Your Name')
+    title = cv.get('title', '')
+    location = cv.get('location', '')
+    phone = cv.get('phone', '')
+    email = cv.get('email', '')
+
+    # Build experience HTML
+    exp_html = ''
+    for job in cv.get('experience', []):
+        bullets = ''.join(f'<li style="margin:4px 0;color:#333;">{b}</li>' for b in job.get('bullets', []))
+        exp_html += f'''
+        <div style="margin-bottom:20px;">
+            <div style="font-weight:700;font-size:15px;color:#1a1a2e;">{job.get("title", "")}</div>
+            <div style="font-size:13px;color:#666;margin-bottom:6px;">{job.get("company", "")} | {job.get("dates", "")}</div>
+            <ul style="padding-left:20px;margin:0;">{bullets}</ul>
+        </div>'''
+
+    skills_html = ' &bull; '.join(cv.get('key_skills', []))
+    certs_html = ''.join(f'<li style="margin:2px 0;color:#333;">{c}</li>' for c in cv.get('certifications', []))
+
+    score_before = cv_data.get('ats_score_before', '?')
+    score_after = cv_data.get('ats_score_after', '?')
 
     html_body = f"""
-    <div style="max-width:640px;margin:0 auto;font-family:'Inter',Arial,sans-serif;background:#0a0a0b;color:#e8e8ed;padding:40px 32px;border-radius:12px;">
-        <div style="text-align:center;margin-bottom:32px;">
-            <span style="font-size:24px;font-weight:800;color:#ff6b2c;">CVRoast</span>
-            <h1 style="font-size:28px;font-weight:800;margin:16px 0 8px;color:#e8e8ed;">Your Full Resume Review</h1>
-            <p style="color:#8e8e9a;font-size:14px;">Here's your detailed analysis. Save this email for reference.</p>
+    <div style="max-width:660px;margin:0 auto;font-family:Arial,sans-serif;">
+        <div style="text-align:center;padding:24px;background:#0a0a0b;border-radius:12px 12px 0 0;">
+            <span style="font-size:22px;font-weight:800;color:#ff6b2c;">CVRoast</span>
+            <h1 style="font-size:22px;font-weight:700;color:#fff;margin:12px 0 4px;">Your Professionally Rewritten CV</h1>
+            <p style="color:#8e8e9a;font-size:13px;margin:0;">ATS Score: {score_before}/100 → {score_after}/100</p>
         </div>
-        <div style="background:#131316;border:1px solid #2a2a30;border-radius:12px;padding:32px;line-height:1.8;">
-            <p style="margin:0 0 12px;color:#e8e8ed;line-height:1.7;">{review_html}</p>
+        <div style="background:#ffffff;padding:40px 36px;border:1px solid #e0e0e0;">
+            <h1 style="font-size:26px;font-weight:800;color:#1a1a2e;margin:0;">{name}</h1>
+            <div style="font-size:14px;color:#555;margin:4px 0 16px;">{title}</div>
+            <div style="font-size:13px;color:#666;margin-bottom:20px;padding-bottom:16px;border-bottom:2px solid #1a365d;">
+                {f'{location}' if location else ''}{f' | {phone}' if phone else ''}{f' | {email}' if email else ''}
+            </div>
+            <h2 style="font-size:14px;font-weight:700;color:#1a365d;text-transform:uppercase;letter-spacing:1px;margin:20px 0 8px;">Professional Summary</h2>
+            <p style="font-size:14px;color:#333;line-height:1.7;margin:0 0 20px;">{cv.get("personal_statement", "")}</p>
+            <h2 style="font-size:14px;font-weight:700;color:#1a365d;text-transform:uppercase;letter-spacing:1px;margin:20px 0 8px;">Key Skills</h2>
+            <p style="font-size:13px;color:#333;line-height:1.8;margin:0 0 20px;">{skills_html}</p>
+            <h2 style="font-size:14px;font-weight:700;color:#1a365d;text-transform:uppercase;letter-spacing:1px;margin:20px 0 12px;">Professional Experience</h2>
+            {exp_html}
+            {f'<h2 style="font-size:14px;font-weight:700;color:#1a365d;text-transform:uppercase;letter-spacing:1px;margin:20px 0 8px;">Certifications</h2><ul style="padding-left:20px;margin:0;">{certs_html}</ul>' if certs_html else ''}
         </div>
-        <div style="text-align:center;margin-top:32px;padding-top:24px;border-top:1px solid #2a2a30;">
-            <p style="color:#8e8e9a;font-size:13px;">Got a friend who needs a resume reality check?</p>
-            <a href="https://cvroast.com" style="display:inline-block;margin-top:8px;padding:12px 28px;background:#ff6b2c;color:#fff;text-decoration:none;border-radius:8px;font-weight:700;font-size:14px;">Share CVRoast</a>
-            <p style="color:#8e8e9a;font-size:11px;margin-top:20px;">&copy; 2026 CVRoast &middot; <a href="https://cvroast.com/privacy" style="color:#8e8e9a;">Privacy</a></p>
+        <div style="text-align:center;padding:24px;background:#f8f8f8;border-radius:0 0 12px 12px;border:1px solid #e0e0e0;border-top:none;">
+            <p style="color:#666;font-size:13px;margin:0 0 8px;">Tip: Open this email on your computer and print to save as PDF.</p>
+            <a href="https://cvroast.com" style="display:inline-block;padding:10px 24px;background:#ff6b2c;color:#fff;text-decoration:none;border-radius:8px;font-weight:700;font-size:13px;">Share CVRoast</a>
+            <p style="color:#999;font-size:11px;margin-top:16px;">&copy; 2026 CVRoast</p>
         </div>
     </div>
     """
+
+    # Plain text fallback
+    plain = f"{name}\n{title}\n{location} | {phone} | {email}\n\n"
+    plain += f"PROFESSIONAL SUMMARY\n{cv.get('personal_statement', '')}\n\n"
+    plain += f"KEY SKILLS\n{', '.join(cv.get('key_skills', []))}\n\n"
+    plain += "EXPERIENCE\n"
+    for job in cv.get('experience', []):
+        plain += f"\n{job.get('title', '')}\n{job.get('company', '')} | {job.get('dates', '')}\n"
+        for b in job.get('bullets', []):
+            plain += f"  - {b}\n"
 
     try:
         resp = http_requests.post(
@@ -140,9 +178,9 @@ def _send_review_email(to_email, review_markdown):
             json={
                 'from': {'email': FROM_EMAIL, 'name': 'CVRoast'},
                 'to': [{'email': to_email}],
-                'subject': 'Your Full Resume Review — CVRoast',
+                'subject': 'Your Rewritten CV — CVRoast',
                 'html': html_body,
-                'text': f"Your Full Resume Review\n\n{review_markdown}\n\n---\nGet another roast at https://cvroast.com",
+                'text': plain,
             },
             timeout=10,
         )
@@ -152,6 +190,44 @@ def _send_review_email(to_email, review_markdown):
 
 
 # --- Routes ---
+
+@app.route('/api/upload', methods=['POST'])
+def upload_resume():
+    """Extract text from uploaded PDF, DOCX, or TXT file."""
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file provided'}), 400
+
+    file = request.files['file']
+    if not file.filename:
+        return jsonify({'error': 'No file selected'}), 400
+
+    ext = file.filename.rsplit('.', 1)[-1].lower() if '.' in file.filename else ''
+
+    if ext == 'pdf':
+        try:
+            reader = PdfReader(io.BytesIO(file.read()))
+            text = '\n'.join(page.extract_text() or '' for page in reader.pages)
+        except Exception:
+            return jsonify({'error': 'Could not read PDF. Try pasting the text instead.'}), 400
+    elif ext == 'docx':
+        try:
+            doc = Document(io.BytesIO(file.read()))
+            text = '\n'.join(p.text for p in doc.paragraphs if p.text.strip())
+        except Exception:
+            return jsonify({'error': 'Could not read DOCX. Try pasting the text instead.'}), 400
+    elif ext == 'doc':
+        return jsonify({'error': 'Legacy .doc format not supported. Please save as .docx or paste the text.'}), 400
+    elif ext == 'txt':
+        text = file.read().decode('utf-8', errors='ignore')
+    else:
+        return jsonify({'error': 'Supported formats: PDF, DOCX, TXT'}), 400
+
+    text = text.strip()
+    if len(text) < 50:
+        return jsonify({'error': 'Could not extract enough text from the file. Try pasting the text instead.'}), 400
+
+    return jsonify({'text': text, 'filename': file.filename})
+
 
 @app.route('/')
 def index():
@@ -264,8 +340,8 @@ def create_checkout():
                 'price_data': {
                     'currency': 'usd',
                     'product_data': {
-                        'name': 'Full Resume Rewrite & ATS Score',
-                        'description': 'Detailed review, rewritten bullet points, ATS compatibility score, and personalized career tips.',
+                        'name': 'Professional CV Rewrite',
+                        'description': 'Complete CV rewrite with ATS-optimized keywords, achievement metrics, and professional formatting.',
                     },
                     'unit_amount': PRICE_CENTS,
                 },
@@ -331,66 +407,84 @@ def full_review():
     try:
         response = ai.messages.create(
             model="claude-sonnet-4-5-20250929",
-            max_tokens=3000,
+            max_tokens=4096,
             messages=[{
                 "role": "user",
-                "content": f"""You are an expert resume writer, career coach, and ATS (Applicant Tracking System) specialist with 15 years of experience.
+                "content": f"""You are an expert CV/resume writer with 15 years of experience. Your job is to COMPLETELY REWRITE this CV into a professional, ATS-optimized document.
 
-Provide a comprehensive, premium resume review. Use this exact markdown structure:
+Return ONLY a JSON object (no markdown, no code fences, no explanation) with this exact structure:
 
-## ATS Compatibility Score: XX/100
+{{
+  "cv": {{
+    "name": "Full Name from the CV",
+    "title": "A professional title/tagline, e.g. 'Experienced Cleaning & Hospitality Professional | 25+ Years'",
+    "location": "City, Region",
+    "phone": "Phone from CV",
+    "email": "Their email if present, or suggest one as firstname.lastname@email.com",
+    "personal_statement": "A powerful 3-4 sentence professional summary packed with ATS keywords relevant to their industry. Highlight years of experience, key competencies, and reliability.",
+    "key_skills": ["ATS-friendly skill 1", "Skill 2", "...up to 10"],
+    "certifications": ["Cert they have", "Relevant Cert [Recommended]"],
+    "experience": [
+      {{
+        "title": "Job Title",
+        "company": "Company, Location",
+        "dates": "Start — End",
+        "bullets": [
+          "Achievement-focused bullet with estimated metrics",
+          "Second bullet with quantified impact"
+        ]
+      }}
+    ]
+  }},
+  "ats_score_before": 32,
+  "ats_score_after": 78,
+  "changes_made": [
+    "Brief description of improvement 1",
+    "Brief description of improvement 2",
+    "Brief description of improvement 3",
+    "Brief description of improvement 4",
+    "Brief description of improvement 5"
+  ]
+}}
 
-[2-3 sentences explaining the score — what's working and what's not for automated screening systems]
+CRITICAL RULES:
+- Rewrite EVERY job's bullet points with achievement language and realistic estimated metrics
+- Convert ALL vague/conversational language to specific, ATS-scannable professional terms
+- Keep the same jobs, companies, and timeline — NEVER invent experience
+- Add realistic estimated metrics where the original has none (e.g. "cleaned offices" becomes "Maintained cleaning standards across 15,000+ sq ft facility")
+- key_skills must be industry-standard terms, NOT conversational phrases
+- personal_statement: 3-4 sentences, keyword-rich, compelling — sell this person
+- certifications: include ones they mention + suggest up to 3 relevant ones marked [Recommended]
+- Each job should have 2-4 strong bullet points
+- Be realistic with numbers — don't over-inflate, but be specific
+- Return ONLY valid JSON. No text before or after.
 
-## Top 5 Issues Holding You Back
-
-1. **[Issue]** — [Specific explanation with example from their resume]
-2. **[Issue]** — [Specific explanation]
-3. **[Issue]** — [Specific explanation]
-4. **[Issue]** — [Specific explanation]
-5. **[Issue]** — [Specific explanation]
-
-## Rewritten Bullet Points
-
-Take their 5 weakest bullet points and rewrite them using the STAR method with quantified impact. Show before → after for each:
-
-**Before:** [their original bullet]
-**After:** [your improved version with metrics]
-
-(Repeat 5 times)
-
-## Quick Wins (5-Minute Fixes)
-
-Three specific changes they can make RIGHT NOW:
-1. [Quick fix]
-2. [Quick fix]
-3. [Quick fix]
-
-## Industry-Specific Tips
-
-Based on their apparent industry/role, give 2 targeted recommendations that most generic advice misses.
-
----
-
-Be specific to THIS resume. Reference their actual content. Be direct and actionable — they paid for this, give them real value.
-
-Resume:
+CV to rewrite:
 {resume_text}"""
             }]
         )
 
-        review_text = response.content[0].text
+        raw = response.content[0].text.strip()
+        # Strip code fences if present
+        if raw.startswith('```'):
+            raw = raw.split('\n', 1)[1].rsplit('```', 1)[0].strip()
 
-        # Email the review to the customer
+        result = json.loads(raw)
+
+        # Email the rewritten CV
         emailed = False
         if customer_email:
-            emailed = _send_review_email(customer_email, review_text)
+            emailed = _send_cv_email(customer_email, result)
 
-        return jsonify({'review': review_text, 'emailed': emailed})
+        return jsonify({**result, 'emailed': emailed})
 
+    except json.JSONDecodeError:
+        # AI didn't return valid JSON — return raw text as fallback
+        paid_sessions.discard(session_id)
+        return jsonify({'error': 'CV generation failed. Please refresh to try again.'}), 500
     except Exception as e:
         paid_sessions.discard(session_id)  # Allow retry on failure
-        return jsonify({'error': 'Review generation failed. Please refresh to try again.'}), 500
+        return jsonify({'error': 'CV generation failed. Please refresh to try again.'}), 500
 
 
 # --- Admin stats ---

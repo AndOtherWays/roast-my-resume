@@ -127,8 +127,43 @@
             font-size: 13px; font-weight: 600; color: var(--text-muted);
             text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px;
         }
+        /* Upload zone */
+        .upload-zone {
+            border: 2px dashed var(--border); border-radius: var(--radius);
+            padding: 32px 20px; text-align: center; cursor: pointer;
+            transition: all 0.2s; position: relative;
+        }
+        .upload-zone:hover, .upload-zone.dragover {
+            border-color: var(--fire); background: rgba(255,107,44,0.04);
+        }
+        .upload-zone.uploading { opacity: 0.6; pointer-events: none; }
+        .upload-zone.success { border-color: var(--green); border-style: solid; }
+        .upload-icon { color: var(--text-muted); margin-bottom: 12px; }
+        .upload-zone.success .upload-icon { color: var(--green); }
+        .upload-text { font-size: 15px; color: var(--text); margin-bottom: 4px; }
+        .upload-hint { font-size: 13px; color: var(--text-muted); margin-bottom: 16px; }
+        .upload-btn {
+            padding: 8px 20px; font-size: 13px; font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            background: var(--surface-2); color: var(--text); border: 1px solid var(--border);
+            border-radius: 8px; cursor: pointer; transition: all 0.2s;
+        }
+        .upload-btn:hover { border-color: var(--text-muted); }
+        .upload-zone.success .upload-btn { display: none; }
+        .divider-text {
+            text-align: center; margin: 20px 0; position: relative;
+            font-size: 13px; color: var(--text-muted);
+        }
+        .divider-text::before {
+            content: ''; position: absolute; top: 50%; left: 0; right: 0;
+            height: 1px; background: var(--border);
+        }
+        .divider-text span {
+            position: relative; background: var(--surface); padding: 0 16px;
+        }
+
         textarea {
-            width: 100%; min-height: 220px; padding: 16px; font-size: 14px; line-height: 1.7;
+            width: 100%; min-height: 180px; padding: 16px; font-size: 14px; line-height: 1.7;
             font-family: 'Inter', sans-serif; color: var(--text); resize: vertical;
             background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius);
             outline: none; transition: border-color 0.2s;
@@ -356,8 +391,18 @@
 <!-- Input Card -->
 <section class="card" id="get-started">
     <div class="card-inner">
-        <div class="card-label">Paste your resume</div>
-        <textarea id="resumeInput" placeholder="Paste your resume text here...&#10;&#10;Tip: Copy everything from your resume — name, experience, skills, education. The more you paste, the better the roast."></textarea>
+        <div class="card-label">Upload your CV</div>
+        <div class="upload-zone" id="uploadZone">
+            <input type="file" id="fileInput" accept=".pdf,.docx,.txt" hidden>
+            <div class="upload-icon" id="uploadIcon">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            </div>
+            <p class="upload-text" id="uploadText"><strong>Drag & drop your CV here</strong></p>
+            <p class="upload-hint" id="uploadHint">PDF, DOCX, or TXT — max 5MB</p>
+            <button type="button" class="upload-btn" onclick="document.getElementById('fileInput').click()">Choose File</button>
+        </div>
+        <div class="divider-text"><span>or paste your text below</span></div>
+        <textarea id="resumeInput" placeholder="Paste your resume / CV text here...&#10;&#10;Tip: Copy everything — name, experience, skills, education. The more detail, the better the roast."></textarea>
         <div class="char-count"><span id="charCount">0</span> characters</div>
         <button class="btn-roast" id="roastBtn" onclick="submitRoast()">
             Roast My Resume — It's Free
@@ -383,16 +428,16 @@
 
     <div class="upsell" id="upsell">
         <h2>Want the fix, not just the roast?</h2>
-        <p class="subtext">Get a complete professional rewrite powered by advanced AI</p>
+        <p class="subtext">Get your CV professionally rewritten and formatted, ready to send</p>
         <div class="upsell-features">
-            <div class="upsell-feat"><span class="check">&#10003;</span> ATS compatibility deep-dive</div>
-            <div class="upsell-feat"><span class="check">&#10003;</span> 5 bullet points rewritten</div>
-            <div class="upsell-feat"><span class="check">&#10003;</span> Industry-specific tips</div>
-            <div class="upsell-feat"><span class="check">&#10003;</span> Quick wins you can apply now</div>
+            <div class="upsell-feat"><span class="check">&#10003;</span> Complete CV rewrite with metrics</div>
+            <div class="upsell-feat"><span class="check">&#10003;</span> ATS-optimized keywords</div>
+            <div class="upsell-feat"><span class="check">&#10003;</span> Professional formatting</div>
+            <div class="upsell-feat"><span class="check">&#10003;</span> Emailed + instant download</div>
         </div>
         <div class="price-tag"><span class="dollar">$</span>4<sup>.99</sup></div>
         <div class="price-compare">vs <s>$50+</s> for a human resume writer</div>
-        <button class="btn-upgrade" id="upgradeBtn" onclick="checkout()">Get Full Rewrite</button>
+        <button class="btn-upgrade" id="upgradeBtn" onclick="checkout()">Get My Rewritten CV</button>
         <div class="guarantee">One-time payment. Instant delivery. No subscription.</div>
     </div>
 </section>
@@ -445,6 +490,84 @@
     const ta = document.getElementById('resumeInput');
     const cc = document.getElementById('charCount');
     ta.addEventListener('input', () => { cc.textContent = ta.value.length; });
+
+    // --- File upload ---
+    const uploadZone = document.getElementById('uploadZone');
+    const fileInput = document.getElementById('fileInput');
+
+    uploadZone.addEventListener('click', (e) => {
+        if (e.target.tagName !== 'BUTTON') fileInput.click();
+    });
+
+    uploadZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadZone.classList.add('dragover');
+    });
+
+    uploadZone.addEventListener('dragleave', () => {
+        uploadZone.classList.remove('dragover');
+    });
+
+    uploadZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadZone.classList.remove('dragover');
+        if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+    });
+
+    fileInput.addEventListener('change', () => {
+        if (fileInput.files.length) handleFile(fileInput.files[0]);
+    });
+
+    async function handleFile(file) {
+        if (!file) return;
+        if (file.size > 5 * 1024 * 1024) { showToast('File too large. Max 5MB.'); return; }
+
+        const ext = file.name.split('.').pop().toLowerCase();
+        if (!['pdf', 'docx', 'txt'].includes(ext)) {
+            showToast('Supported formats: PDF, DOCX, TXT');
+            return;
+        }
+
+        // Show uploading state
+        uploadZone.classList.add('uploading');
+        document.getElementById('uploadText').innerHTML = '<strong>Extracting text...</strong>';
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const res = await fetch('/api/upload', { method: 'POST', body: formData });
+            const data = await res.json();
+
+            if (!res.ok) {
+                showToast(data.error || 'Upload failed.');
+                resetUploadZone();
+                return;
+            }
+
+            // Populate textarea with extracted text
+            ta.value = data.text;
+            cc.textContent = data.text.length;
+
+            // Show success state
+            uploadZone.classList.remove('uploading');
+            uploadZone.classList.add('success');
+            document.getElementById('uploadIcon').innerHTML = '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>';
+            document.getElementById('uploadText').innerHTML = '<strong>' + escapeHtml(data.filename) + '</strong>';
+            document.getElementById('uploadHint').textContent = data.text.length.toLocaleString() + ' characters extracted — review below and hit Roast';
+
+        } catch (e) {
+            showToast('Upload failed. Try pasting text instead.');
+            resetUploadZone();
+        }
+    }
+
+    function resetUploadZone() {
+        uploadZone.classList.remove('uploading', 'success', 'dragover');
+        document.getElementById('uploadIcon').innerHTML = '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>';
+        document.getElementById('uploadText').innerHTML = '<strong>Drag & drop your CV here</strong>';
+        document.getElementById('uploadHint').textContent = 'PDF, DOCX, or TXT — max 5MB';
+    }
 
     // Animated counter for social proof
     let roastCount = parseInt(localStorage.getItem('rmr_count') || '0');
