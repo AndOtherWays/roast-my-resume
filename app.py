@@ -384,6 +384,12 @@ def seo_page():
     return redirect('/')
 
 
+@app.route('/score/<int:score>')
+def score_page(score):
+    score = max(0, min(100, score))
+    return render_template('score.html', score=score)
+
+
 @app.route('/api/roast', methods=['POST'])
 def free_roast():
     ip = request.headers.get('X-Forwarded-For', request.remote_addr) or '0.0.0.0'

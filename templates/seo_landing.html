@@ -12,6 +12,11 @@
     <meta property="og:image" content="https://cvroast.com/static/og.png">
     <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
     <link rel="canonical" href="https://cvroast.com/{{ request.path.strip('/') }}">
+    <link rel="alternate" hreflang="en-gb" href="https://cvroast.com/{{ request.path.strip('/') }}">
+    <link rel="alternate" hreflang="en-us" href="https://cvroast.com/{{ request.path.strip('/') }}">
+    <link rel="alternate" hreflang="en-au" href="https://cvroast.com/{{ request.path.strip('/') }}">
+    <link rel="alternate" hreflang="en" href="https://cvroast.com/{{ request.path.strip('/') }}">
+    <link rel="alternate" hreflang="x-default" href="https://cvroast.com/{{ request.path.strip('/') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -299,6 +304,13 @@
 </section>
 
 <footer>
+    <div style="margin-bottom:16px;display:flex;gap:16px;justify-content:center;flex-wrap:wrap">
+        <a href="/free-resume-checker" style="color:var(--text-muted);text-decoration:none;font-size:12px">Free Resume Checker</a>
+        <a href="/ats-score-checker" style="color:var(--text-muted);text-decoration:none;font-size:12px">ATS Score Checker</a>
+        <a href="/resume-review" style="color:var(--text-muted);text-decoration:none;font-size:12px">Resume Review</a>
+        <a href="/cv-review" style="color:var(--text-muted);text-decoration:none;font-size:12px">CV Review</a>
+        <a href="/resume-roast" style="color:var(--text-muted);text-decoration:none;font-size:12px">Resume Roast</a>
+    </div>
     &copy; 2026 CVRoast. Brutally honest resume feedback.
     <br><a href="/privacy">Privacy Policy</a>
 </footer>

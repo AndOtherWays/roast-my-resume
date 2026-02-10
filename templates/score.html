@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Someone scored {{ score }}/100 — Can you beat it? | CVRoast</title>
+    <meta name="description" content="This resume scored {{ score }}/100 on the CVRoast ATS checker. Think yours is better? Find out in 10 seconds — free.">
+    <meta property="og:title" content="This resume scored {{ score }}/100 — Can you beat it?">
+    <meta property="og:description" content="Someone just got their resume roasted and scored {{ score }}/100. Think you can do better? Check your score free in 10 seconds.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://cvroast.com/score/{{ score }}">
+    <meta property="og:image" content="https://cvroast.com/static/og.png">
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Space Grotesk', -apple-system, sans-serif;
+            background: #08080a; color: #ededf0;
+            min-height: 100vh; display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            text-align: center; padding: 24px;
+            -webkit-font-smoothing: antialiased;
+        }
+        .logo {
+            position: fixed; top: 16px; left: 24px;
+            font-weight: 700; font-size: 19px; text-decoration: none;
+            background: linear-gradient(135deg, #ff6b2c, #ff8f56);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .card {
+            max-width: 480px; padding: 48px 40px;
+            background: #111114; border: 1px solid #252530;
+            border-radius: 20px; position: relative; overflow: hidden;
+        }
+        .card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, transparent, #ff6b2c, transparent);
+        }
+        .context {
+            font-size: 14px; color: #7c7c8a; margin-bottom: 24px;
+            text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600;
+        }
+        .score-ring {
+            position: relative; width: 180px; height: 180px; margin: 0 auto 24px;
+        }
+        .score-ring svg { transform: rotate(-90deg); }
+        .score-ring circle { fill: none; stroke-width: 8; stroke-linecap: round; }
+        .score-ring .bg { stroke: #252530; }
+        .score-ring .fill { transition: stroke-dashoffset 1.5s ease-out; }
+        .score-num {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -55%);
+            font-size: 56px; font-weight: 700; color: #ededf0;
+        }
+        .score-label {
+            position: absolute; top: 67%; left: 50%; transform: translateX(-50%);
+            font-size: 13px; font-weight: 600; color: #7c7c8a;
+            text-transform: uppercase; letter-spacing: 0.1em;
+        }
+        .message {
+            font-size: 22px; font-weight: 700; margin-bottom: 8px; line-height: 1.3;
+        }
+        .submessage {
+            font-size: 15px; color: #7c7c8a; margin-bottom: 32px; line-height: 1.6;
+        }
+        .cta {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 16px 36px; font-size: 17px; font-weight: 700;
+            font-family: 'Space Grotesk', sans-serif;
+            background: linear-gradient(135deg, #ff6b2c, #e05a1a);
+            color: #fff; border: none; border-radius: 12px; cursor: pointer;
+            text-decoration: none; transition: all 0.25s;
+            box-shadow: 0 4px 20px rgba(255,107,44,0.25);
+        }
+        .cta:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 32px rgba(255,107,44,0.4);
+        }
+        .fine-print { font-size: 12px; color: #7c7c8a; margin-top: 16px; }
+    </style>
+</head>
+<body>
+
+<a href="/" class="logo">CVRoast</a>
+
+<div class="card">
+    <div class="context">Someone's resume scored</div>
+    <div class="score-ring">
+        <svg width="180" height="180" viewBox="0 0 180 180">
+            <circle class="bg" cx="90" cy="90" r="82"/>
+            <circle class="fill" id="scoreCircle" cx="90" cy="90" r="82"/>
+        </svg>
+        <div class="score-num">{{ score }}</div>
+        <div class="score-label">out of 100</div>
+    </div>
+
+    {% if score < 30 %}
+    <div class="message">Yikes. Think you can do better?</div>
+    <div class="submessage">This resume got roasted hard. Surely yours isn't this bad... right?</div>
+    {% elif score < 50 %}
+    <div class="message">Not great. Can you beat {{ score }}?</div>
+    <div class="submessage">The average resume scores 42/100. Most people are shocked by their number.</div>
+    {% elif score < 70 %}
+    <div class="message">Decent. But can you beat it?</div>
+    <div class="submessage">This score is better than average — but there's still room to improve. What's yours?</div>
+    {% else %}
+    <div class="message">Impressive. Can you match {{ score }}?</div>
+    <div class="submessage">This is a seriously strong resume. Think yours can compete? Find out in 10 seconds.</div>
+    {% endif %}
+
+    <a href="/#get-started" class="cta">Check My Score Free</a>
+    <div class="fine-print">Free. 10 seconds. No signup required.</div>
+</div>
+
+<script>
+    const score = {{ score }};
+    const circle = document.getElementById('scoreCircle');
+    const circumference = 2 * Math.PI * 82;
+    circle.style.strokeDasharray = circumference;
+    circle.style.strokeDashoffset = circumference;
+
+    let color = '#ef4444';
+    if (score >= 70) color = '#22c55e';
+    else if (score >= 45) color = '#eab308';
+    circle.style.stroke = color;
+
+    setTimeout(() => {
+        circle.style.strokeDashoffset = circumference - (score / 100) * circumference;
+    }, 300);
+</script>
+</body>
+</html>
