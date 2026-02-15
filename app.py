@@ -306,6 +306,11 @@ def sitemap():
     return app.send_static_file('sitemap.xml')
 
 
+@app.route('/fe5f6bb0ad9a49518b31ab1408dffa2b.txt')
+def indexnow_key():
+    return app.send_static_file('fe5f6bb0ad9a49518b31ab1408dffa2b.txt')
+
+
 @app.route('/')
 def index():
     return render_template('index.html', stripe_key=STRIPE_PUBLISHABLE_KEY)
