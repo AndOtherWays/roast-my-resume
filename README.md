@@ -122,6 +122,17 @@ CVRoast includes a full SEO content strategy built into the application:
 - **Embeddable widget** -- a one-line JS embed for other websites
 - **RSS feed** at `/feed.xml`
 
+## Free Resume Resources
+
+We also publish free career resources at [resume-score-tools.pages.dev](https://resume-score-tools.pages.dev):
+
+- [**Free Resume Score Calculator**](https://resume-score-tools.pages.dev/) -- check your ATS compatibility score
+- [**Roast My Resume**](https://resume-score-tools.pages.dev/roast) -- get brutally honest AI feedback
+- [**Why Am I Not Getting Interviews?**](https://resume-score-tools.pages.dev/not-getting-interviews) -- troubleshoot your job search
+- [**ATS Resume Tips**](https://resume-score-tools.pages.dev/ats-resume-tips) -- beat applicant tracking systems
+- [**Resume Examples 2025**](https://resume-score-tools.pages.dev/resume-examples) -- professional templates that work
+- [**Cover Letter Guide**](https://resume-score-tools.pages.dev/cover-letter-guide) -- write one that actually gets read
+
 ## Local Development
 
 ```bash
