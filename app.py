@@ -311,6 +311,11 @@ def indexnow_key():
     return app.send_static_file('fe5f6bb0ad9a49518b31ab1408dffa2b.txt')
 
 
+@app.route('/fd3f76b2d9af48ad9c2b731aeca73f26.txt')
+def indexnow_key2():
+    return app.send_static_file('fd3f76b2d9af48ad9c2b731aeca73f26.txt')
+
+
 @app.route('/')
 def index():
     return render_template('index.html', stripe_key=STRIPE_PUBLISHABLE_KEY)
